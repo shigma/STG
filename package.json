@@ -12,12 +12,10 @@
     "start": "npm run dev",
     "lint": "eslint --ext .js,.vue packages/server/src",
     "build": "node packages/server/build/build.js",
-    "tsc": "tsc -b",
-    "bootstrap": "lerna bootstrap --no-ci --npm-client yarn"
+    "tsc": "tsc -b"
   },
   "devDependencies": {
     "@types/node": "^10.12.18",
-    "lerna": "^3.10.7",
     "typescript": "^3.2.4"
   }
 }
