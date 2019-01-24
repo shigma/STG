@@ -1,0 +1,36 @@
+root: true
+
+parserOptions:
+  parser: babel-eslint
+
+env:
+  browser: true
+
+extends: 
+  - plugin:vue/essential
+  - airbnb-base
+  
+plugins:
+  - vue
+
+settings:
+  import/resolver:
+    webpack:
+      config: build/webpack.base.conf.js
+
+rules:
+  semi: off
+  no-eval: off
+  no-shadow: off
+  func-names: off
+  no-console: off
+  no-return-assign: off
+  no-else-return: off
+  no-unused-vars: off
+  space-before-function-paren: off
+  import/no-webpack-loader-syntax: off
+  import/extensions:
+    - error
+    - always
+    - js: never
+      vue: never

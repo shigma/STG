@@ -1,0 +1,38 @@
+canvas {
+    left: 40px;
+    width: 480px;
+    top: 20px;
+    height: 560px;
+    position: absolute;
+}
+
+.right {
+    left: 520px;
+    width: 280px;
+    top: 20px;
+    height: 560px;
+    position: absolute;
+}
+
+button {
+    border: none;
+    outline: none;
+    cursor: pointer;
+    transition: 0.5s ease;
+    margin-top: 16px;
+    display: table;
+    border-radius: 8px;
+    background-color: beige;
+}
+
+button:hover { background-color: burlywood }
+button.disabled {
+    background-color: lightgrey;
+    cursor: default;
+}
+
+button > div {
+    color: black;
+    padding: 4px 12px;
+    font-size: 20px;
+}

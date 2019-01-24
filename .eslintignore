@@ -1,0 +1,5 @@
+/packages/server/build/
+/packages/server/config/
+/packages/server/dist/
+/packages/server/static/
+/packages/server/*.js

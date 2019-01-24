@@ -1,0 +1,22 @@
+{
+  "name": "@stg/app",
+  "version": "1.0.0",
+  "private": true,
+  "description": "An electron app for THP.",
+  "author": "shigma <1700011071@pku.edu.cn>",
+  "homepage": "https://github.com/Shigma/touhou",
+  "license": "Apache-2.0",
+  "main": "main.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Shigma/touhou.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Shigma/touhou/issues"
+  },
+  "dependencies": {
+    "vue": "^2.5.17",
+    "electron": "^4.0.2",
+    "@stg/core": "^1.0.0"
+  }
+}

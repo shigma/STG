@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "declaration": true,
+    "target": "esnext",
+    // "noImplicitAny": true,
+    "composite": true,
+    "esModuleInterop": true
+  }
+}
