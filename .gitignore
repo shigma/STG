@@ -1,12 +1,17 @@
 .vscode
 .editorconfig
-
-packages/**/dist
-test.*
-
 .DS_Store
+!.gitkeep
+
+# Temporarily and generated files
+**/dist/
+test.*
+packages/server/static/*
+
+# Package related files
 node_modules/
-/dist/
+yarn.lock
+package-lock.json
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
