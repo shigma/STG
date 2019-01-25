@@ -1,10 +1,10 @@
-import { BulletOptions } from '../bullet'
+import { BulletOptions } from '@stg/core'
 
 export default {
   state: {
-    radius: 6,
-    judgeR: 4,
-    innerR: 4,
+    radius: 20,
+    judgeR: 14,
+    innerR: 8.5,
     color: 'white',
     bdColor: 'blue',
   },

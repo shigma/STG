@@ -1,7 +1,9 @@
 <script>
 
 import * as stg from '@stg/core'
+import * as builtin from '@stg/bullets'
 
+stg.Bullet.install(builtin)
 window.define('@stg/core', stg)
 
 export default {
@@ -91,6 +93,11 @@ export default {
   text-align: center;
   color: #2c3e50;
   margin-top: 60px;
+}
+
+body {
+  margin: 0;
+  overflow: hidden;
 }
 
 canvas {

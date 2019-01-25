@@ -3,6 +3,7 @@ require('./check-versions')()
 
 process.env.NODE_ENV = 'production'
 
+const fs = require('fs')
 const ora = require('ora')
 const rm = require('rimraf')
 const path = require('path')
@@ -19,6 +20,13 @@ rm(path.join(config.build.assetsRoot, config.build.assetsSubDirectory), (err) =>
   webpack(webpackConfig, (err, stats) => {
     spinner.stop()
     if (err) throw err
+
+    fs.writeFileSync(
+      config.build.index,
+      fs.readFileSync(config.build.index, 'utf8')
+        .replace(/=\/static\//g, '=static/')
+    )
+
     process.stdout.write(`${stats.toString({
       colors: true,
       modules: false,
@@ -33,9 +41,5 @@ rm(path.join(config.build.assetsRoot, config.build.assetsSubDirectory), (err) =>
     }
 
     console.log(chalk.cyan('  Build complete.\n'))
-    console.log(chalk.yellow(
-      '  Tip: built files are meant to be served over an HTTP server.\n'
-      + '  Opening index.html over file:// won\'t work.\n',
-    ))
   })
 })

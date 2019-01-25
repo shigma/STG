@@ -1,4 +1,4 @@
-import { BulletOptions } from '../bullet'
+import { BulletOptions } from '@stg/core'
 
 export default {
   mutate() {

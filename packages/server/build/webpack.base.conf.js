@@ -41,6 +41,15 @@ module.exports = {
   module: {
     rules: [
       ...(config.dev.useEslint ? [createLintingRule()] : []),
+      // {
+      //   test: /\.tsx?$/,
+      //   loader: 'ts-loader',
+      //   options: {
+      //     loaderOptions: {
+      //       projectReferences: true,
+      //     },
+      //   }
+      // },
       {
         test: /\.vue$/,
         loader: 'vue-loader',

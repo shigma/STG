@@ -12,7 +12,7 @@ module.exports = {
   created() {
     this.setInterval(100, (time) => {
       this.emitBullets(8, (index) => ({
-        extends: 'small-jade',
+        extends: 'small',
         state: {
           rho: 12,
           outerR: 12,

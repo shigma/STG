@@ -1,11 +1,9 @@
 import * as math from './math'
-import Builtin from './builtin'
-import deepmerge from 'deepmerge'
+import Templater, { Extension } from './templater'
 import Coordinate, { Point } from './coordinate'
 import CanvasPoint, { PointOptions } from './point'
 
 type StringMap<T = any> = Record<string, T>
-type BulletTemplate = string | BulletOptions | (string | BulletOptions)[]
 type JudgeType = 'square' | 'ortho' | 'tangent' | 'none'
 type FieldType = 'viewport' | 'distant' | 'timing' | 'infinite'
 
@@ -21,7 +19,7 @@ interface BulletPoint {
 }
 
 export interface BulletOptions extends PointOptions<Bullet>, BulletPoint {
-  extends?: BulletTemplate
+  extends?: Extension<BulletOptions>
 }
 
 export interface BulletReferences extends StringMap<Coordinate> {
@@ -30,23 +28,19 @@ export interface BulletReferences extends StringMap<Coordinate> {
   src?: Coordinate
 }
 
-function resolveTemplate(template: BulletTemplate): BulletOptions {
-  if (Array.isArray(template)) {
-    return deepmerge.all(template.map(resolveTemplate))
-  } else if (typeof template === 'string') {
-    if (template in Builtin.Templates) {
-      return resolveTemplate(Builtin.Templates[template])
-    } else {
-      throw new Error(`Template ${template} was not registered.`)
-    }
-  } else if (template.extends) {
-    return deepmerge(resolveTemplate(template.extends), template)
-  } else {
-    return template
-  }
-}
-
 export default class Bullet extends CanvasPoint implements BulletPoint {
+  /** built-in templates */
+  static templates = new Templater<BulletOptions>({
+    hookProperties: ['mutate', 'created'],
+  })
+
+  /** install new bullet templates */
+  static install(templates: Record<string, BulletOptions>): void
+  static install(name: string, options: BulletOptions): void
+  static install(...args: [any, any?]) {
+    this.templates.install(...args)
+  }
+
   public layer: number
   public relPoint: string
   public judgeType: JudgeType
@@ -60,13 +54,22 @@ export default class Bullet extends CanvasPoint implements BulletPoint {
   public $refs: BulletReferences
 
   constructor(options: BulletOptions = {}) {
-    const template = resolveTemplate(options)
-    super(template)
+    const template = Bullet.templates.resolve(options)
+    if (template.judgeType === undefined) {
+      template.judgeType = 'ortho'
+    } else if (template.judgeType === 'none') {
+      template.judgeType = null
+    }
+    if (template.fieldType === undefined) {
+      template.fieldType = 'viewport'
+    } else if (template.fieldType === 'infinite') {
+      template.fieldType = null
+    }
+    template.extends = [template.fieldType, template.judgeType]
+    super(Bullet.templates.resolve(template))
     this.$refs = {}
     this.layer = template.layer === undefined ? 0 : template.layer
     this.relPoint = template.relPoint === undefined ? 'base' : template.relPoint
-    if (template.judgeType === undefined) this.judgeType = 'ortho'
-    if (template.fieldType === undefined) this.fieldType = 'viewport'
   }
 
   get $coord(): Coordinate {
@@ -76,16 +79,6 @@ export default class Bullet extends CanvasPoint implements BulletPoint {
       this._coordinate.$birth = this.$timestamp
     }
     return this._coordinate
-  }
-
-  _mutate(time: number, delta: number) {
-    this._mutateHook.forEach(hook => hook.call(this, time, delta))
-    if (this.judgeType in Builtin.Judges) {
-      Builtin.Judges[this.judgeType].mutate.call(this)
-    }
-    if (this.fieldType in Builtin.Fields) {
-      Builtin.Fields[this.fieldType].mutate.call(this)
-    }
   }
 
   polarLocate(rho = this.rho, theta = this.theta) {

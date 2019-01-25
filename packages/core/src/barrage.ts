@@ -68,7 +68,7 @@ export default class Barrage extends Updater {
   _display(time: number, delta: number): void {
     this.$bullets.forEach(bullet => bullet.update(time))
     if (this.$bullets.length > Barrage.maxBulletCount) {
-      throw new Error(`Error: The amount of bullets ${this.$bullets.length} is beyond the limit!`)
+      throw new Error(`The amount of bullets ${this.$bullets.length} is beyond the limit!`)
     }
   }
 

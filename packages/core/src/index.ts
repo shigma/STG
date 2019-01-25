@@ -1,6 +1,7 @@
 import Barrage, { BarrageOptions } from './barrage'
 import Bullet, { BulletOptions } from './bullet'
 import Player, { PlayerOptions } from './player'
+import Templater from './templater'
 import memorize from './cache'
 import Coordinate from './coordinate'
 import Updater from './updater'
@@ -15,6 +16,7 @@ export {
   Bullet,
   Field,
   Updater,
+  Templater,
   Coordinate,
   BarrageOptions,
   PlayerOptions,

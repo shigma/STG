@@ -1,6 +1,8 @@
 {
   "references": [
+    { "path": "./packages/bullets" },
     { "path": "./packages/core" },
+    { "path": "./packages/utils" },
   ],
   "files": []
 }
