@@ -1,39 +1,68 @@
+import Looping, { LoopingOptions } from './looping'
 import Barrage, { BarrageOptions } from './barrage'
 import Player, { PlayerOptions } from './player'
 
-interface FieldOptions {
-  showFrameRate?: boolean
+export interface FieldOptions extends LoopingOptions {
+  background?: string
+  height?: number
+  width?: number
+  frameRate?: null | {
+    padding?: number
+    fontSize?: number
+    fontColor?: string
+    fontFamily?: string
+    refreshInterval?: number
+    format?(n: number): string
+  }
 }
 
-export default class Field extends EventTarget {
-  static MIN_FRAME = 10
+export default class Field extends Looping {
+  public readonly element: HTMLElement
+  public readonly canvas: HTMLCanvasElement
+  public readonly context: CanvasRenderingContext2D
 
-  private _frameId: number = null
-  private _frameTime: number = 0
-  private _frameCount: number = 0
-  private _stopTime: number = 0
-  private _lastTime: number = null
-
-  public showFrameRate: boolean
-  public canvas: HTMLCanvasElement
-  public context: CanvasRenderingContext2D
   public barrage: Barrage
   public player: Player
-  public error: Error
-  public bgColor = 'black'
 
-  constructor(canvas: HTMLCanvasElement, options: FieldOptions = {}) {
-    super()
-    this.showFrameRate = options.showFrameRate
-    this.canvas = canvas
-    this.context = canvas.getContext('2d')
-    this.context.fillStyle = this.bgColor
-    this.context.fillRect(0, 0, this.canvas.width, this.canvas.height)
-    window.addEventListener('keydown', (event) => {
+  private _currentFrameRateCaption: string
+  private _lastModifyFrameRateTime: number
+
+  /** field options */
+  protected readonly _options: FieldOptions = {
+    // looping options
+    tickLength: 10,
+    tickStorage: 60,
+
+    width: 480,
+    height: 560,
+    background: 'black',
+    frameRate: {
+      padding: 4,
+      fontSize: 16,
+      fontColor: 'white',
+      fontFamily: 'Calibri, Candara, Segoe, "Segoe UI", Optima, Arial',
+      refreshInterval: 50,
+      format: n => n.toFixed(1),
+    },
+  }
+
+  constructor(element: HTMLElement, options: FieldOptions = {}) {
+    super(options)
+
+    this.element = element
+    element.classList.add('stg-field')
+    element.style.background = this._options.background
+
+    this.canvas = element.appendChild(document.createElement('canvas'))
+    this.canvas.height = this._options.height
+    this.canvas.width = this._options.width
+    this.context = this.canvas.getContext('2d')
+
+    addEventListener('keydown', (event) => {
       if (!this.player) return
       this.player.keyState[event.key] = 1
     })
-    window.addEventListener('keyup', (event) => {
+    addEventListener('keyup', (event) => {
       if (!this.player) return
       this.player.keyState[event.key] = 0
     })
@@ -50,63 +79,40 @@ export default class Field extends EventTarget {
 
   resetBarrage() {
     this.barrage = null
-    this.error = null
-    if (this._frameId !== null) this.pause()
+    this.pause()
     this.context.clearRect(0, 0, this.canvas.width, this.canvas.height)
     this.player.initialize(this.context)
   }
 
-  pause() {
-    this._lastTime = performance.now()
-    cancelAnimationFrame(this._frameId)
-    this._frameId = null
-    this.dispatchEvent(new CustomEvent('pause'))
-  }
-
-  resume() {
-    this._stopTime += performance.now() - this._lastTime
-    this._frameId = requestAnimationFrame(this.update)
-    this.dispatchEvent(new CustomEvent('resume'))
-  }
-
   update(timestamp: number) {
-    if (timestamp - this._frameTime > Field.MIN_FRAME) {
-      this.context.fillStyle = this.bgColor
-      this.context.fillRect(0, 0, this.canvas.width, this.canvas.height)
-      try {
-        this.barrage.update(timestamp - this._stopTime)
-        this.player.update(timestamp - this._stopTime)
-      } catch (error) {
-        console.error(error)
-        this.error = error
-      }
-      this.context.strokeStyle = 'green'
-      this.context.strokeText(String(this.frameRate), 0, 0)
-      this._frameCount += 1
-      this._frameTime = timestamp
-    }
-    if (!this.error) {
-      this._frameId = requestAnimationFrame(timestamp => this.update(timestamp))
-    } else {
-      this._frameId = null
-      this.dispatchEvent(new CustomEvent('stop'))
-    }
+    this.context.clearRect(0, 0, this.canvas.width, this.canvas.height)
+    this.barrage.update(timestamp)
+    this.player.update(timestamp)
+    this.updateFrameRate(timestamp)
   }
 
-  toggle() {
-    if (this._frameId !== null) {
-      this.pause()
-    } else {
-      this._stopTime += performance.now() - this._lastTime
-      this._frameId = requestAnimationFrame(timestamp => this.update(timestamp))
-    }
-  }
+  private updateFrameRate(time: number) {
+    const option = this._options.frameRate
+    if (!option) return
 
-  get frameRate() {
-    if (this._frameCount) {
-      return Math.round(1000 / (this._frameTime - this._stopTime) * this._frameCount)
+    let caption: string
+    if (time - this._lastModifyFrameRateTime < option.refreshInterval) {
+      caption = this._currentFrameRateCaption
     } else {
-      return Math.round(1000 / Field.MIN_FRAME)
+      const frameRate = this.getFrameRate()
+      if (!frameRate) return
+      caption = this._currentFrameRateCaption = option.format(frameRate)
+      this._lastModifyFrameRateTime = time
     }
+
+    this.context.textAlign = 'right'
+    this.context.textBaseline = 'bottom'
+    this.context.fillStyle = option.fontColor
+    this.context.font = `${option.fontSize}px ${option.fontFamily}`
+    this.context.fillText(
+      caption,
+      this._options.width - option.padding,
+      this._options.height - option.padding,
+    )
   }
 }

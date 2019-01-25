@@ -1,4 +1,4 @@
-import * as math from './math'
+import math from './math'
 import Templater, { Extension } from './templater'
 import Coordinate, { Point } from './coordinate'
 import CanvasPoint, { PointOptions } from './point'
@@ -31,7 +31,7 @@ export interface BulletReferences extends StringMap<Coordinate> {
 export default class Bullet extends CanvasPoint implements BulletPoint {
   /** built-in templates */
   static templates = new Templater<BulletOptions>({
-    hookProperties: ['mutate', 'created'],
+    hookProperties: ['mutate', 'mounted'],
   })
 
   /** install new bullet templates */

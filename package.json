@@ -8,10 +8,9 @@
     "packages/*"
   ],
   "scripts": {
-    "dev": "webpack-dev-server --inline --progress --config packages/server/build/webpack.dev.conf.js",
-    "start": "npm run dev",
-    "lint": "eslint --ext .js,.vue packages/server/src",
-    "build": "node packages/server/build/build.js",
+    "dev": "tsc -b && yarn workspace @stg/server dev",
+    "lint": "yarn workspace @stg/server lint",
+    "build": "tsc -b && yarn workspace @stg/server build",
     "tsc": "tsc -b"
   },
   "devDependencies": {

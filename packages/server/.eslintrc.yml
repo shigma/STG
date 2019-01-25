@@ -18,6 +18,9 @@ settings:
     webpack:
       config: build/webpack.base.conf.js
 
+globals:
+  Vue: true
+
 rules:
   semi: off
   no-eval: off
@@ -27,6 +30,8 @@ rules:
   no-return-assign: off
   no-else-return: off
   no-unused-vars: off
+  no-mixed-operators: off
+  prefer-template: off
   space-before-function-paren: off
   import/no-webpack-loader-syntax: off
   import/extensions:

@@ -1,24 +1,29 @@
+import Looping, { LoopingOptions } from './looping'
 import Barrage, { BarrageOptions } from './barrage'
 import Bullet, { BulletOptions } from './bullet'
 import Player, { PlayerOptions } from './player'
+import Field, { FieldOptions } from './field'
+import Coordinate, { Point } from './coordinate'
 import Templater from './templater'
 import memorize from './cache'
-import Coordinate from './coordinate'
 import Updater from './updater'
-import Field from './field'
-import * as math from './math'
+import math from './math'
 
 export {
   math,
   memorize,
+  Point,
   Barrage,
   Player,
   Bullet,
   Field,
+  Looping,
   Updater,
   Templater,
   Coordinate,
-  BarrageOptions,
+  FieldOptions,
   PlayerOptions,
   BulletOptions,
+  BarrageOptions,
+  LoopingOptions,
 }

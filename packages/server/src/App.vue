@@ -2,17 +2,17 @@
 
 import * as stg from '@stg/core'
 import * as builtin from '@stg/bullets'
+import '@stg/core/styles/index.scss'
 
 stg.Bullet.install(builtin)
 window.define('@stg/core', stg)
 
 export default {
-  data() {
-    return {
-      filename: '',
-      active: null,
-    }
-  },
+  data: () => ({
+    filename: '',
+    active: null,
+    height: innerHeight,
+  }),
 
   computed: {
     title() {
@@ -22,10 +22,21 @@ export default {
         return '未载入弹幕'
       }
     },
+    fieldStyle() {
+      const height = Math.min(this.height, 560)
+      return {
+        height: height + 'px',
+        width: height / 7 * 6 + 'px',
+      }
+    },
   },
 
   mounted() {
-    this.field = new stg.Field(this.$refs.canvas, {
+    window.app = this
+    addEventListener('resize', () => {
+      this.height = innerHeight
+    })
+    this.field = new stg.Field(this.$refs.field, {
       showFrameRate: true,
     })
     this.field.setPlayer({
@@ -69,7 +80,7 @@ export default {
 
 <template>
   <div id="app">
-    <canvas ref="canvas" width="480" height="560"/>
+    <div ref="field" :style="fieldStyle"/>
     <div class="right" align="center" ref="div">
       <button @click="toggle" :class="{ disabled: !filename }">
         <div>{{ active ? 'Pause' : active === null ? 'Start' : 'Resume' }}</div>
@@ -78,8 +89,6 @@ export default {
         <div>Load</div>
       </button>
       <p>{{ title }}</p>
-      <!-- <p>帧率: {{ frameRate }}</p>
-      <p v-if="error">Error</p> -->
     </div>
   </div>
 </template>
@@ -100,11 +109,10 @@ body {
   overflow: hidden;
 }
 
-canvas {
+.stg-field {
+  top: 50%;
   left: 40px;
-  width: 480px;
-  top: 20px;
-  height: 560px;
+  transform: translateY(-50%);
   position: absolute;
 }
 

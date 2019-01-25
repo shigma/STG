@@ -1,7 +1,7 @@
-import Updater, { UpdateHook, CreateHook } from './updater'
+import Updater, { UpdateHook, MountedHook } from './updater'
 import Barrage, { BulletEmitter } from './barrage'
 import Coordinate, { Point } from './coordinate'
-import * as math from './math'
+import math from './math'
 
 type MaybeArray<T> = T | T[]
 type MaybeFunction<T> = T | (() => T)
@@ -9,7 +9,7 @@ type MaybeFunction<T> = T | (() => T)
 export interface PointOptions<T extends CanvasPoint = CanvasPoint> {
   show?: boolean
   state?: MaybeFunction<Record<string, any>>
-  created?: MaybeArray<CreateHook<T & this['state']>>
+  mounted?: MaybeArray<MountedHook<T & this['state']>>
   mutate?: MaybeArray<UpdateHook<T & this['state']>>
   display?: UpdateHook<T & this['state']>
 }
@@ -21,15 +21,17 @@ export default class CanvasPoint extends Updater implements Point {
   public face?: number
   public rho?: number
   public theta?: number
+  public isPlayer?: boolean
 
   /** @protected current coordinate */
   protected _coordinate?: Coordinate
-  /** @protected created hook */
-  protected _createdHook: CreateHook<this>[]
-  /** @protected mutate hook */
-  protected _mutateHook: UpdateHook<this>[]
-  /** @protected display hook */
-  protected _displayHook: UpdateHook<this>
+
+  /** @private mounted hook */
+  private _mountedHook: MountedHook<this>[]
+  /** @private mutate hook */
+  private _mutateHook: UpdateHook<this>[]
+  /** @private display hook */
+  private _displayHook: UpdateHook<this>
 
   /** @public the radius of the point */
   public radius?: number
@@ -46,7 +48,7 @@ export default class CanvasPoint extends Updater implements Point {
     this.y = 0
     this.show = options.show !== false
     this._displayHook = options.display
-    this._initHooks('_createdHook', options.created)
+    this._initHooks('_mountedHook', options.mounted)
     this._initHooks('_mutateHook', options.mutate)
     const state = typeof options.state === 'function'
       ? options.state.call(this)
@@ -64,17 +66,15 @@ export default class CanvasPoint extends Updater implements Point {
     }
   }
 
-  _created() {
-    this._createdHook.forEach(hook => hook.call(this))
-  }
-
-  _mutate(time: number, delta: number) {
-    this._mutateHook.forEach(hook => hook.call(this, time, delta))
-  }
-
-  _display(time: number, delta: number) {
-    if (!this.$context || this.show === false || !this._displayHook) return
-    this._displayHook.call(this, time, delta)
+  _mounted() {
+    this._mountedHook.forEach(hook => hook.call(this))
+    this._mutateHook.forEach(hook => this.setTask(hook))
+    if (this._displayHook) {
+      this.setTask((time, delta) => {
+        if (!this.$context || this.show === false) return
+        this._displayHook.call(this, time, delta)
+      })
+    }
   }
 
   get $coord(): Coordinate {

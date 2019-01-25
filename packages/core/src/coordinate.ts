@@ -1,3 +1,5 @@
+import math from './math'
+
 /** a general point in Cartesian coordinate system */
 export interface Point {
   /** x coordinate */
@@ -36,18 +38,18 @@ export default class Coordinate implements Point {
 
   set face(value) {
     this._face = value || 0
-    this._cos = Math.cos(Math.PI * value || 0)
-    this._sin = Math.sin(Math.PI * value || 0)
+    this._cos = math.cos(Math.PI * value || 0)
+    this._sin = math.sin(Math.PI * value || 0)
   }
 
   get rho(): number {
     if (this._rho) return this._rho
-    return this._rho = Math.sqrt(this.x ** 2 + this.y ** 2)
+    return this._rho = math.sqrt(this.x ** 2 + this.y ** 2)
   }
 
   get theta(): number {
     if (this._theta) return this._theta
-    return this._theta = Math.atan2(this.y, this.x)
+    return this._theta = math.atan2(this.y, this.x)
   }
 
   dist2(point: Point): number {

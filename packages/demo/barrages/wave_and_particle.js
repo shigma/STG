@@ -1,22 +1,22 @@
+const { math } = require('@stg/core')
+
 module.exports = {
   reference: {
     base: {
       state: {
         x: 240,
         y: 280,
-        radius: 12,
-        color: 'violet'
       }
     }
   },
-  created() {
+  mounted() {
     this.setInterval(100, (time) => {
       this.emitBullets(8, (index) => ({
         extends: 'small',
         state: {
-          rho: 12,
+          rho: 32,
           outerR: 12,
-          face: index / 4 + Math.sin(time / 1000),
+          face: index / 4 + math.sin(time / 1000),
           color: 'white',
           glColor: 'violet'
         },
