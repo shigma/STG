@@ -1,30 +1,30 @@
-const { math } = require('@stg/core')
+const { Barrage } = require('@stg/core')
 
-module.exports = {
+module.exports = new Barrage({
   reference: {
     base: {
       state: {
         x: 240,
         y: 280,
-      }
+      },
+      mutate(tick) {
+        this.face = tick / 100
+      },
     }
   },
   mounted() {
-    this.setInterval(100, (time) => {
-      this.emitBullets(8, (index) => ({
+    this.setInterval(8, () => {
+      this.emitBullets(7, (index) => ({
         extends: 'small',
         state: {
           rho: 32,
-          outerR: 12,
-          face: index / 4 + math.sin(time / 1000),
-          color: 'white',
-          glColor: 'violet'
+          theta: index / 3.5,
         },
-        mutate(time, delta) {
-          this.rho += (1 + time / 1000) * delta / 16
-          this.polarLocate(this.rho, this.face)
+        mutate(tick) {
+          this.rho += 2 + tick / 40
+          this.polarLocate(this.rho, this.theta)
         }
       }))
     })
   }
-}
+})

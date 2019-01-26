@@ -47,7 +47,7 @@ export default class Bullet extends CanvasPoint implements BulletPoint {
   public fieldType: FieldType
 
   /** @public judge radius */
-  public judgeR?: number
+  public judgeRadius?: number
   /** @public buller id */
   public $id: number
   /** @public reference points */
@@ -73,10 +73,10 @@ export default class Bullet extends CanvasPoint implements BulletPoint {
   }
 
   get $coord(): Coordinate {
-    if (!this._coordinate || this.$timestamp !== this._coordinate.$birth) {
+    if (!this._coordinate || this.$tick !== this._coordinate.$birth) {
       const rel: Point = this.$refs[this.relPoint] || { x: 0, y: 0, face: 0 }
       this._coordinate = new Coordinate(this.x + rel.x, this.y + rel.y, this.face + rel.face)
-      this._coordinate.$birth = this.$timestamp
+      this._coordinate.$birth = this.$tick
     }
     return this._coordinate
   }
@@ -94,7 +94,7 @@ export default class Bullet extends CanvasPoint implements BulletPoint {
 
   destroy() {
     const $id = this.$id
-    this.$parent.setImmediate(function() {
+    this.$parent.setTimeout(0, function() {
       const index = this.$bullets.findIndex(bullet => bullet.$id === $id)
       if (index >= 0) this.$bullets.splice(index, 1)
     })

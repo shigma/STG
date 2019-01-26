@@ -1,18 +1,22 @@
-import Looping, { LoopingOptions } from './looping'
+import Looping, { LoopingOptions, LoopingStatus } from './looping'
 import Barrage, { BarrageOptions } from './barrage'
 import Player, { PlayerOptions } from './player'
 
-export interface FieldOptions extends LoopingOptions {
+export interface FieldOptions {
+  useWorker?: boolean
   background?: string
   height?: number
   width?: number
+  looping?: LoopingOptions
   frameRate?: null | {
     padding?: number
+    paddingX?: number
+    paddingY?: number
     fontSize?: number
     fontColor?: string
     fontFamily?: string
     refreshInterval?: number
-    format?(n: number): string
+    format?(stat: LoopingStatus): string
   }
 }
 
@@ -28,26 +32,31 @@ export default class Field extends Looping {
   private _lastModifyFrameRateTime: number
 
   /** field options */
-  protected readonly _options: FieldOptions = {
-    // looping options
-    tickLength: 10,
-    tickStorage: 60,
-
+  readonly _options: FieldOptions = {
     width: 480,
     height: 560,
     background: 'black',
     frameRate: {
-      padding: 4,
+      paddingX: 6,
+      paddingY: 4,
       fontSize: 16,
       fontColor: 'white',
       fontFamily: 'Calibri, Candara, Segoe, "Segoe UI", Optima, Arial',
       refreshInterval: 50,
-      format: n => n.toFixed(1),
+      format({ tickRate, dropRate }) {
+        return `Tick Rate: ${tickRate.toFixed(1)}, Drop Rate: ${Math.floor(dropRate * 100)}%`
+      },
     },
   }
 
   constructor(element: HTMLElement, options: FieldOptions = {}) {
-    super(options)
+    super(options.looping)
+    const { frameRate } = options
+    if (frameRate) {
+      frameRate.paddingX = frameRate.paddingX || frameRate.padding
+      frameRate.paddingY = frameRate.paddingY || frameRate.padding
+    }
+    Object.assign(this._options, options)
 
     this.element = element
     element.classList.add('stg-field')
@@ -72,8 +81,11 @@ export default class Field extends Looping {
     this.player = new Player(options).initialize(this.context)
   }
 
-  setBarrage(options: BarrageOptions) {
-    this.barrage = new Barrage(options).initialize(this.context)
+  setBarrage(barrage: BarrageOptions | Barrage) {
+    if (!('__STG__' in barrage)) {
+      barrage = new Barrage(barrage as BarrageOptions)
+    }
+    this.barrage = barrage.initialize(this.context)
     this.barrage.$refs.player = this.player
   }
 
@@ -84,24 +96,30 @@ export default class Field extends Looping {
     this.player.initialize(this.context)
   }
 
-  update(timestamp: number) {
-    this.context.clearRect(0, 0, this.canvas.width, this.canvas.height)
-    this.barrage.update(timestamp)
-    this.player.update(timestamp)
-    this.updateFrameRate(timestamp)
+  update() {
+    this.barrage.update()
+    this.player.update()
   }
 
-  private updateFrameRate(time: number) {
+  render() {
+    this.context.clearRect(0, 0, this.canvas.width, this.canvas.height)
+    this.barrage.render()
+    this.player.render()
+    this.updateFrameRate()
+  }
+
+  private updateFrameRate() {
     const option = this._options.frameRate
     if (!option) return
 
     let caption: string
+    const time = performance.now()
     if (time - this._lastModifyFrameRateTime < option.refreshInterval) {
       caption = this._currentFrameRateCaption
     } else {
-      const frameRate = this.getFrameRate()
-      if (!frameRate) return
-      caption = this._currentFrameRateCaption = option.format(frameRate)
+      const stat = this.getStatus()
+      if (!stat) return
+      caption = this._currentFrameRateCaption = option.format(stat)
       this._lastModifyFrameRateTime = time
     }
 
@@ -111,8 +129,8 @@ export default class Field extends Looping {
     this.context.font = `${option.fontSize}px ${option.fontFamily}`
     this.context.fillText(
       caption,
-      this._options.width - option.padding,
-      this._options.height - option.padding,
+      this._options.width - option.paddingX,
+      this._options.height - option.paddingY,
     )
   }
 }

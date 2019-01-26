@@ -1,11 +1,13 @@
 <script>
 
 import * as stg from '@stg/core/src/index.ts'
+import * as utils from '@stg/utils/src/index.ts'
 import * as builtin from '@stg/bullets/src/index.ts'
 import '@stg/core/styles/index.scss'
 
 stg.Bullet.install(builtin)
 window.define('@stg/core', stg)
+window.define('@stg/utils', utils)
 
 export default {
   data: () => ({

@@ -3,7 +3,7 @@ import { BulletOptions } from '@stg/core'
 export default {
   state: {
     radius: 6,
-    judgeR: 4,
+    judgeRadius: 4,
     innerR: 4,
     color: 'white',
     bdColor: 'blue',

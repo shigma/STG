@@ -1,4 +1,4 @@
-import Updater, { UpdateHook, MountedHook } from './updater'
+import Updater, { TaskHook, MountHook } from './updater'
 import Barrage, { BulletEmitter } from './barrage'
 import Coordinate, { Point } from './coordinate'
 import math from './math'
@@ -9,9 +9,10 @@ type MaybeFunction<T> = T | (() => T)
 export interface PointOptions<T extends CanvasPoint = CanvasPoint> {
   show?: boolean
   state?: MaybeFunction<Record<string, any>>
-  mounted?: MaybeArray<MountedHook<T & this['state']>>
-  mutate?: MaybeArray<UpdateHook<T & this['state']>>
-  display?: UpdateHook<T & this['state']>
+  mounted?: MaybeArray<MountHook<T & Record<string, any>>>
+  mutate?: MaybeArray<TaskHook<T & Record<string, any>>>
+  display?: MountHook<T & Record<string, any>>
+  methods?: Record<string, (this: T & Record<string, any>, ...args: any[]) => any>
 }
 
 /** a general point in the canvas */
@@ -27,11 +28,11 @@ export default class CanvasPoint extends Updater implements Point {
   protected _coordinate?: Coordinate
 
   /** @private mounted hook */
-  private _mountedHook: MountedHook<this>[]
+  private _mountedHook: MountHook<this>[]
   /** @private mutate hook */
-  private _mutateHook: UpdateHook<this>[]
+  private _mutateHook: TaskHook<this>[]
   /** @private display hook */
-  private _displayHook: UpdateHook<this>
+  private _displayHook: MountHook<this>
 
   /** @public the radius of the point */
   public radius?: number
@@ -50,6 +51,7 @@ export default class CanvasPoint extends Updater implements Point {
     this._displayHook = options.display
     this._initHooks('_mountedHook', options.mounted)
     this._initHooks('_mutateHook', options.mutate)
+    Object.assign(this, options.methods)
     const state = typeof options.state === 'function'
       ? options.state.call(this)
       : options.state
@@ -69,18 +71,18 @@ export default class CanvasPoint extends Updater implements Point {
   _mounted() {
     this._mountedHook.forEach(hook => hook.call(this))
     this._mutateHook.forEach(hook => this.setTask(hook))
-    if (this._displayHook) {
-      this.setTask((time, delta) => {
-        if (!this.$context || this.show === false) return
-        this._displayHook.call(this, time, delta)
-      })
-    }
+  }
+
+  render() {
+    if (!this._displayHook) return
+    if (!this.$context || this.show === false) return
+    this._displayHook.call(this)
   }
 
   get $coord(): Coordinate {
-    if (!this._coordinate || this.$timestamp !== this._coordinate.$birth) {
+    if (!this._coordinate || this.$tick !== this._coordinate.$birth) {
       this._coordinate = new Coordinate(this.x, this.y, this.face)
-      this._coordinate.$birth = this.$timestamp
+      this._coordinate.$birth = this.$tick
     }
     return this._coordinate
   }

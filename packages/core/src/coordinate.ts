@@ -24,7 +24,7 @@ export default class Coordinate implements Point {
   private _sin: number
   private _rho: number
   private _face: number
-  private _theta: number
+  private _thetaRadian: number
   
   constructor(x: number, y: number, face?: number) {
     this.x = x
@@ -48,15 +48,29 @@ export default class Coordinate implements Point {
   }
 
   get theta(): number {
-    if (this._theta) return this._theta
-    return this._theta = math.atan2(this.y, this.x)
+    return this._thetaRadian / Math.PI
+  }
+
+  get thetaRadian() {
+    if (typeof this._thetaRadian === 'number') return this._thetaRadian
+    return this._thetaRadian = math.atan2(this.y, this.x)
   }
 
   dist2(point: Point): number {
     return (this.x - point.x) ** 2 + (this.y - point.y) ** 2
   }
 
-  resolve(x: number, y: number, face?: number): Coordinate {
+  resolve(coordinate: Coordinate): Coordinate
+  resolve(x: number, y: number, face?: number): Coordinate
+  resolve(...args: [any, any?, any?]) {
+    let x: number, y: number, face: number
+    if (typeof args[0] === 'object') {
+      x = args[0].x
+      y = args[0].y
+      face = args[0].face
+    } else {
+      [x, y, face = 0] = args
+    }
     return new Coordinate(
       this.x + x * this._cos - y * this._sin,
       this.y + x * this._sin + y * this._cos,
@@ -64,7 +78,17 @@ export default class Coordinate implements Point {
     )
   }
 
-  locate(x: number, y: number, face?: number): Coordinate {
+  locate(coordinate: Coordinate): Coordinate
+  locate(x: number, y: number, face?: number): Coordinate
+  locate(...args: [any, any?, any?]) {
+    let x: number, y: number, face: number
+    if (typeof args[0] === 'object') {
+      x = args[0].x
+      y = args[0].y
+      face = args[0].face
+    } else {
+      [x, y, face = 0] = args
+    }
     const dx = x - this.x, dy = y - this.y
     return new Coordinate(
       dx * this._cos + dy * this._sin,

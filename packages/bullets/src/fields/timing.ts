@@ -2,10 +2,10 @@ import { BulletOptions } from '@stg/core'
 
 export default {
   state: {
-    lifeSpan: 120000,
+    lifeSpan: 12000,
   },
-  mutate() {
-    if (this.$timestamp > this.lifeSpan) {
+  mutate(tick) {
+    if (tick > this.lifeSpan) {
       this.destroy()
     }
   },

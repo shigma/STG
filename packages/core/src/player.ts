@@ -10,11 +10,11 @@ interface KeyState extends Record<string, BoolInt> {
   Shift: BoolInt
 }
 
-export interface PlayerOptions extends PointOptions {}
+export interface PlayerOptions extends PointOptions<Player> {}
 
 export default class Player extends CanvasPoint {
   /** @public judge radius */
-  public judgeR: number
+  public judgeRadius: number
   /** @public life count */
   public lifeCount: number
   /** @public bomb count */
@@ -39,11 +39,11 @@ export default class Player extends CanvasPoint {
   _mounted() {
     this.x = this.$context.canvas.width / 2
     this.y = this.$context.canvas.height / 8 * 7
-    this._display()
-    this.setTask(() => this._mutate())
+    this.render()
+    this.setTask(this._mutate)
   }
 
-  private _mutate() {
+  private _mutate(tick: number) {
     const speed = this.velocity / Math.sqrt(
       (this.keyState.ArrowDown ^ this.keyState.ArrowUp) +
       (this.keyState.ArrowLeft ^ this.keyState.ArrowRight) || 1
@@ -58,11 +58,9 @@ export default class Player extends CanvasPoint {
     if (this.y < 0) this.y = 0
     if (this.x > this.$context.canvas.width) this.x = this.$context.canvas.width
     if (this.y > this.$context.canvas.height) this.y = this.$context.canvas.height
-
-    this._display()
   }
 
-  private _display() {
+  render() {
     const gradient = this.getGradient('white', this.radius / 2)
     this.fillCircle(gradient)
   }

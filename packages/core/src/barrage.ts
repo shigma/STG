@@ -1,16 +1,16 @@
 import Player from './player'
 import Bullet, { BulletOptions } from './bullet'
 import CanvasPoint, { PointOptions } from './point'
-import Updater, { MountedHook, UpdateHook } from './updater'
+import Updater, { MountHook, TaskHook } from './updater'
 
 type MaybeFunction<T> = T | (() => T)
 
 export interface BarrageOptions<T extends Barrage = Barrage> {
   state?: MaybeFunction<Record<string, any>>
   reference?: Record<string, CanvasPoint | PointOptions>
-  mounted?: MountedHook<T & this['state'] & this['methods']>
-  mutate?: UpdateHook<T & this['state'] & this['methods']>
-  methods?: Record<string, (this: T & this['state'] & this['methods'], ...args: any[]) => any>
+  mounted?: MountHook<T & Record<string, any>>
+  mutate?: TaskHook<T & Record<string, any>>
+  methods?: Record<string, (this: T & Record<string, any>, ...args: any[]) => any>
 }
 
 export type BulletEmitter = ((this: Barrage, index: number) => BulletOptions) | BulletOptions
@@ -28,9 +28,11 @@ export default class Barrage extends Updater {
   /** @private store the last created point index */
   private _pointCounter = 0
   /** @protected mounted hook */
-  protected _mountedHook: MountedHook<this & any>
+  protected _mountedHook: MountHook<this & any>
   /** @protected mutate hook */
-  protected _mutateHook: UpdateHook<this & any>
+  protected _mutateHook: TaskHook<this & any>
+  /** @protected reference points */
+  protected _references: Record<string, CanvasPoint | PointOptions>
 
   /** @public bullets in the barrage */
   public $bullets: Bullet[]
@@ -43,29 +45,39 @@ export default class Barrage extends Updater {
     this.$bullets = []
     this._mutateHook = options.mutate
     this._mountedHook = options.mounted
+    this._references = options.reference || {}
     Object.assign(this, options.methods)
     const state = typeof options.state === 'function'
       ? options.state.call(this)
       : options.state
     Object.assign(this, state)
-    for (const key in options.reference) {
-      this.setRefPoint(key, options.reference[key])
-    }
   }
 
   _mounted() {
+    this.$refs = {}
     if (this._mountedHook) this._mountedHook()
     if (this._mutateHook) this.setTask(this._mutateHook)
-    this.setTask((time) => {
+    for (const key of Object.keys(this._references)) {
+      this.setRefPoint(key, this._references[key])
+    }
+    this.setTask(() => {
       for (const key in this.$refs) {
         const ref = this.$refs[key]
-        if (!ref.isPlayer) ref.update(time)
+        if (!ref.isPlayer) ref.update()
       }
-      this.$bullets.forEach(bullet => bullet.update(time))
+      this.$bullets.forEach(bullet => bullet.update())
       if (this.$bullets.length > Barrage.maxBulletCount) {
         throw new Error(`The amount of bullets ${this.$bullets.length} is beyond the limit!`)
       }
     })
+  }
+
+  render() {
+    for (const key in this.$refs) {
+      const ref = this.$refs[key]
+      if (!ref.isPlayer) ref.render()
+    }
+    this.$bullets.forEach(bullet => bullet.render())
   }
 
   /**
@@ -85,7 +97,7 @@ export default class Barrage extends Updater {
    * remove a reference point
    * @returns whether the provided key is found
    */
-  removeReference(key: string | number): boolean {
+  removeRefPoint(key: string | number): boolean {
     return delete this.$refs[key]
   }
 
@@ -100,11 +112,12 @@ export default class Barrage extends Updater {
     const emitter: BulletEmitter = args[args.length - 1]
     for (let i = start; i < end; i += step) {
       const options = typeof emitter === 'function' ? emitter.call(this, i) : emitter
-      const bullet = new Bullet(options).initialize(this.$context, this)
+      const bullet = new Bullet(options)
       bullet.$id = ++ this._pointCounter
       for (const key in this.$refs) {
         bullet.$refs[key] = this.$refs[key].$coord
       }
+      bullet.initialize(this.$context, this)
       const index = this.$bullets.findIndex(({ layer }) => layer > bullet.layer)
       if (index < 0) {
         this.$bullets.push(bullet)
