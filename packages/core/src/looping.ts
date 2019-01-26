@@ -1,5 +1,7 @@
 export interface LoopingOptions {
+  /** minimun length of a tick */
   tickLength?: number
+  /** amount of ticks used to calculate the frame rate */
   tickStorage?: number
 }
 
@@ -27,7 +29,7 @@ export default class Looping extends EventTarget {
   }
 
   /** things to do in a updating cycle */
-  public update(timestamp: number) {}
+  public update(timestamp: number, render: boolean) {}
 
   /** pause */
   public pause() {
@@ -65,7 +67,6 @@ export default class Looping extends EventTarget {
     return 1000 / totalTime * this._recentFrames.length
   }
 
-  /** **render cycle:** using `requestAnimationFrame` to catch up with display */
   private _render(timestamp: number) {
     // record timestamp
     const frameTime = timestamp - (this._lastFrame || 0)
@@ -78,7 +79,7 @@ export default class Looping extends EventTarget {
     // perform the current frame
     if (frameTime > this._options.tickLength) {
       try {
-        this._update(timestamp - this._totalStop)
+        this.update(timestamp - this._totalStop, true)
       } catch (error) {
         console.error(error)
         this._frameId = null
@@ -92,10 +93,5 @@ export default class Looping extends EventTarget {
     // request the next frame
     this._frameId = requestAnimationFrame(t => this._render(t))
     this.dispatchEvent(new CustomEvent('update'))
-  }
-
-  /** **update cycle:** using `setTimeout` to perform updates */
-  private _update(timestamp: number) {
-    this.update(timestamp)
   }
 }

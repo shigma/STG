@@ -1,7 +1,7 @@
 <script>
 
-import * as stg from '@stg/core'
-import * as builtin from '@stg/bullets'
+import * as stg from '@stg/core/src/index.ts'
+import * as builtin from '@stg/bullets/src/index.ts'
 import '@stg/core/styles/index.scss'
 
 stg.Bullet.install(builtin)

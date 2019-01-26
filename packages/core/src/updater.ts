@@ -16,6 +16,8 @@ export default class Updater {
 
   /** @private store all scheduled hooks */
   private _tasks: TaskWrapper<this>[] = []
+  /** @private current task id */
+  private _currentTaskId: number
   /** @private a list for tasks to remove */
   private _tasksToRemove = new Set<number>()
   /** @private store the last task index */
@@ -27,6 +29,8 @@ export default class Updater {
   public $context: CanvasRenderingContext2D
   /** @public the timestamp when the instance was created */
   public $birth: number
+  /** @public the current tick count */
+  public $tickCount = 0
   /** @public the timestamp in the previous update cycle */
   public $timeline = -1
   /** @public the timestamp in the current update cycle */
@@ -37,7 +41,7 @@ export default class Updater {
   public $parent: Updater
 
   /** inherit from state */
-  // [K: string]: any
+  [K: string]: any
 
   /** initialization */
   initialize(context?: CanvasRenderingContext2D, parent?: Updater): this {
@@ -53,7 +57,8 @@ export default class Updater {
     if (typeof this.$birth !== 'number') this.$birth = time
     time -= this.$birth
 
-    // update timestamp
+    // update timestamp and tick count
+    this.$tickCount += 1
     this.$timestamp = time
     this.$deltaTime = time - this.$timeline
 
@@ -67,6 +72,7 @@ export default class Updater {
 
     // execute all the tasks
     tasks.forEach((hook) => {
+      this._currentTaskId = hook.id
       hook.callback.call(this, time, this.$deltaTime)
       if (!hook.preserve) this._tasksToRemove.add(hook.id)
     })
@@ -85,6 +91,9 @@ export default class Updater {
 
   /**
    * set a scheduled task
+   * @param callback the task callback
+   * @param index the position where the task will be inserted (default: `Infinity`)
+   * @param preserve whether the task will be preserved after executed (default: `true`)
    * @returns a number which indicates the task id
    **/
   setTask(callback: TaskHook<this>, index = Infinity, preserve = true) {
@@ -110,8 +119,7 @@ export default class Updater {
     return this.setTask(() => {
       if (this.$timeline < timeout && this.$timestamp >= timeout) {
         callback.call(this, this.$timestamp, this.$deltaTime)
-      } else {
-        return true
+        this.removeTask()
       }
     }, 0)
   }
@@ -132,15 +140,17 @@ export default class Updater {
       const timestampAge = Math.floor((this.$timestamp - birth) / interval)
       const timelineAge = Math.floor((this.$timeline - birth) / interval)
       if (timestampAge > timelineAge) {
-        if (timestampAge >= times) return
+        if (timestampAge >= times) return this.removeTask()
         callback.call(this, this.$timestamp, this.$deltaTime)
       }
-      return true
     }, 0)
   }
 
+  /** remove the current task */
+  removeTask(): void
   /** remove a scheduled task */
-  removeTask(id: number) {
+  removeTask(id: number): void
+  removeTask(id = this._currentTaskId) {
     this._tasksToRemove.add(id)
   }
 }

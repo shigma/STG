@@ -2,7 +2,11 @@
 const path = require('path')
 const utils = require('./utils')
 const config = require('../config')
-const vueLoaderConfig = require('./vue-loader.conf')
+
+const isProduction = process.env.NODE_ENV === 'production'
+const sourceMapEnabled = isProduction
+  ? config.build.productionSourceMap
+  : config.dev.cssSourceMap
 
 function resolve(dir) {
   return path.join(__dirname, '..', dir)
@@ -12,7 +16,9 @@ const createLintingRule = () => ({
   test: /\.(js|vue)$/,
   loader: 'eslint-loader',
   enforce: 'pre',
-  include: [resolve('src'), resolve('test')],
+  include: [
+    resolve('src'),
+  ],
   options: {
     formatter: require('eslint-friendly-formatter'),
     emitWarning: !config.dev.showEslintErrorsInOverlay,
@@ -32,7 +38,7 @@ module.exports = {
       : config.dev.assetsPublicPath,
   },
   resolve: {
-    extensions: ['.js', '.vue', '.json'],
+    extensions: ['.js', '.ts', '.vue', '.json'],
     alias: {
       vue$: 'vue/dist/vue.esm.js',
       '@': resolve('src'),
@@ -41,24 +47,40 @@ module.exports = {
   module: {
     rules: [
       ...(config.dev.useEslint ? [createLintingRule()] : []),
-      // {
-      //   test: /\.tsx?$/,
-      //   loader: 'ts-loader',
-      //   options: {
-      //     loaderOptions: {
-      //       projectReferences: true,
-      //     },
-      //   }
-      // },
+      {
+        test: /\.tsx?$/,
+        loader: 'ts-loader',
+        options: {
+          context: resolve('../..'),
+          configFile: resolve('../../tsconfig.json'),
+        }
+      },
       {
         test: /\.vue$/,
         loader: 'vue-loader',
-        options: vueLoaderConfig,
+        options: {
+          loaders: utils.cssLoaders({
+            sourceMap: sourceMapEnabled,
+            extract: isProduction,
+          }),
+          cssSourceMap: sourceMapEnabled,
+          cacheBusting: config.dev.cacheBusting,
+          transformToRequire: {
+            video: ['src', 'poster'],
+            source: 'src',
+            img: 'src',
+            image: 'xlink:href',
+          },
+        },
       },
       {
         test: /\.js$/,
         loader: 'babel-loader',
-        include: [resolve('src'), resolve('test'), resolve('../../node_modules/webpack-dev-server/client')],
+        include: [
+          resolve('src'),
+          resolve('test'),
+          resolve('../../node_modules/webpack-dev-server/client'),
+        ],
       },
       {
         test: /\.(png|jpe?g|gif|svg)(\?.*)?$/,

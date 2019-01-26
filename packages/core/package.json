@@ -4,6 +4,9 @@
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
   "license": "MIT",
+  "scripts": {
+    "build": "node-sass styles/index.scss out/index.min.css --output-style compressed"
+  },
   "dependencies": {
     "deepmerge": "^3.1.0"
   },

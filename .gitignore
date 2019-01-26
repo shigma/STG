@@ -5,6 +5,7 @@
 
 # Temporarily and generated files
 **/dist/
+**/out/
 test.*
 packages/server/static/*
 
