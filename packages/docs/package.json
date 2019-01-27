@@ -15,7 +15,7 @@
     "@vuepress/plugin-notification": "^1.0.0-alpha.32",
     "@vutex/vuepress-plugin-component-container": "^0.1.3",
     "prismjs": "^1.15.0",
-    "stgame": "^0.1.0",
+    "web-stg": "^0.1.0",
     "vuepress": "^1.0.0-alpha.32"
   }
 }

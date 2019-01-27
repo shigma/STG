@@ -1,5 +1,6 @@
 module.exports = {
   title: 'web-stg',
+  base: '/STG/',
   description: '一个基于浏览器的弹幕引擎',
   dest: '../../docs/',
   plugins: {
