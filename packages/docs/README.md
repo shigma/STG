@@ -5,8 +5,10 @@ actionLink: /guide/
 footer: MIT Licensed | Copyright © 2018 Shigma
 ---
 
-``` js
-export default {
+### 只需寥寥数行代码, 便可实现生动的弹幕
+
+%%% STG
+module.exports = {
   reference: {
     base: {
       state: {
@@ -21,7 +23,7 @@ export default {
   mounted() {
     this.setInterval(8, () => {
       this.emitBullets(7, (index) => ({
-        extends: 'small',
+        extends: "small",
         state: {
           rho: 32,
           theta: index / 3.5,
@@ -34,4 +36,4 @@ export default {
     })
   }
 }
-```
+%%%

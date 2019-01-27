@@ -1,0 +1,19 @@
+$bg = #282c34
+
+pre
+  &::-webkit-scrollbar
+    width 0.8em
+    height 0.8em
+  &::-webkit-scrollbar-track
+    box-shadow inset 0 0 4px rgba(0, 0, 0, 0.1)
+    border-radius 0.8em
+  &::-webkit-scrollbar-thumb
+    background-color rgba(0, 0, 0, 0.2)
+    border-radius 0.8em
+  &::-webkit-scrollbar-corner
+    background-color $bg
+  &:hover
+    &::-webkit-scrollbar-track
+      box-shadow inset 0 0 6px rgba(0, 0, 0, 0.3)
+    &::-webkit-scrollbar-thumb
+      background-color rgba(0, 0, 0, 0.3)
