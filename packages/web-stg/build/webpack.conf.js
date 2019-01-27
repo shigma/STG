@@ -5,10 +5,10 @@ module.exports = {
   mode: 'production',
   entry: resolve('src/index.js'),
   output: {
-    filename: 'stgame.min.js',
+    filename: 'web-stg.min.js',
     path: resolve('dist'),
     libraryTarget: 'umd',
-    library: 'stgame',
+    library: 'stg',
   },
   resolve: {
     extensions: ['.js', '.json']

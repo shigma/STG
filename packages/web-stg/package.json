@@ -1,7 +1,7 @@
 {
-  "name": "stgame",
+  "name": "web-stg",
   "version": "0.1.0",
-  "main": "dist/stgame.min.js",
+  "main": "dist/web-stg.min.js",
   "typings": "index.d.ts",
   "author": {
     "name": "shigma",

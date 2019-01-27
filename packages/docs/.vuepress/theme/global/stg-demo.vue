@@ -10,7 +10,7 @@
 <script>
 
 import 'prismjs'
-import 'stgame'
+import 'web-stg'
 
 export default {
   props: ['data'],
@@ -33,7 +33,7 @@ export default {
   mounted() {
     this.layout()
     addEventListener('resize', () => this.layout())
-    this.field = new stgame.Field(this.$refs.field, {
+    this.field = new stg.Field(this.$refs.field, {
       background: '#282c34',
       frameRate: false,
     })
