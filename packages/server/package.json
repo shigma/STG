@@ -10,9 +10,9 @@
     "build": "node build/build.js"
   },
   "dependencies": {
-    "@stg/bullets": "^1.0.0",
-    "@stg/core": "^1.0.0",
-    "@stg/utils": "^1.0.0",
+    "@stg/bullets": "^0.1.0",
+    "@stg/core": "^0.1.0",
+    "@stg/utils": "^0.1.0",
     "vue": "^2.5.2"
   },
   "devDependencies": {

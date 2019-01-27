@@ -1,17 +1,24 @@
 {
   "name": "@stg/core",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
+  "author": {
+    "name": "shigma",
+    "email": "1700011071@pku.edu.cn"
+  },
   "license": "MIT",
+  "files": [
+    "dist"
+  ],
   "scripts": {
-    "build": "node-sass styles/index.scss out/index.min.css --output-style compressed"
+    "build": "tsc -b & node-sass styles/index.scss dist/index.min.css --output-style compressed"
   },
   "dependencies": {
     "deepmerge": "^3.1.0"
   },
   "devDependencies": {
     "node-sass": "^4.11.0",
-    "worker-loader": "^2.0.0"
+    "typescript": "^3.2.4"
   }
 }

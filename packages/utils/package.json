@@ -1,7 +1,17 @@
 {
   "name": "@stg/utils",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
-  "license": "MIT"
+  "author": {
+    "name": "shigma",
+    "email": "1700011071@pku.edu.cn"
+  },
+  "license": "MIT",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -b"
+  }
 }

@@ -1,0 +1,26 @@
+{
+  "name": "stgame",
+  "version": "0.1.0",
+  "main": "dist/stgame.min.js",
+  "typings": "index.d.ts",
+  "author": {
+    "name": "shigma",
+    "email": "1700011071@pku.edu.cn"
+  },
+  "license": "MIT",
+  "scripts": {
+    "build": "webpack-cli --config build/webpack.conf.js"
+  },
+  "dependencies": {
+    "@stg/bullets": "^0.1.0",
+    "@stg/core": "^0.1.0",
+    "@stg/utils": "^0.1.0"
+  },
+  "devDependencies": {
+    "clean-webpack-plugin": "^1.0.1",
+    "css-loader": "^2.1.0",
+    "style-loader": "^0.23.1",
+    "webpack": "^4.29.0",
+    "webpack-cli": "^3.2.1"
+  }
+}
