@@ -33,7 +33,7 @@ export default {
     addEventListener('resize', () => this.layout())
     if (!this.$slots || !this.$slots.default) return
     const code = this.$slots.default[0].elm.innerText
-    await import('web-stg')
+    const stg = await import('web-stg')
     this.field = new stg.Field(this.$refs.field, {
       background: '#282c34',
       frameRateStyle: this.showStat ? {} : undefined,
