@@ -1,3 +1,5 @@
+const { resolve } = require('path')
+
 module.exports = {
   title: 'web-stg',
   base: '/STG/',
@@ -10,10 +12,6 @@ module.exports = {
     '@vuepress/google-analytics': {},
     '@vuepress/back-to-top': {},
     '@vuepress/medium-zoom': {},
-    '@vutex/component-container': {
-      alias: { STG: 'stg-demo' },
-      useText: ['STG'],
-    },
   },
   themeConfig: {
     nav: [

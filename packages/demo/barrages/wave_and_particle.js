@@ -1,6 +1,4 @@
-const { Barrage } = require('@stg/core')
-
-module.exports = new Barrage({
+module.exports = {
   reference: {
     base: {
       state: {
@@ -27,4 +25,4 @@ module.exports = new Barrage({
       }))
     })
   }
-})
+}

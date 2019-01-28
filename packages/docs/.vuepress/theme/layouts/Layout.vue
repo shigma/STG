@@ -31,18 +31,11 @@
 
     <Home v-if="$page.frontmatter.home"/>
 
-    <Page
-      v-else
-      :sidebar-items="sidebarItems"
-    >
-      <slot
-        name="page-top"
-        slot="top"
-      />
-      <slot
-        name="page-bottom"
-        slot="bottom"
-      />
+    <Playground v-else-if="$page.frontmatter.playground"/>
+
+    <Page v-else :sidebar-items="sidebarItems">
+      <slot name="page-top" slot="top"/>
+      <slot name="page-bottom" slot="bottom"/>
     </Page>
   </div>
 </template>
@@ -51,13 +44,14 @@
 import Vue from 'vue'
 import nprogress from 'nprogress'
 import Home from '../components/Home.vue'
+import Playground from '../components/Playground.vue'
 import Navbar from '../components/Navbar.vue'
 import Page from '../components/Page.vue'
 import Sidebar from '../components/Sidebar.vue'
 import { resolveSidebarItems } from '../utils'
 
 export default {
-  components: { Home, Page, Sidebar, Navbar },
+  components: { Home, Playground, Page, Sidebar, Navbar },
 
   data () {
     return {

@@ -1,18 +1,16 @@
 <template>
   <div class="stg-demo" :style="style">
-    <div class="code">
-      <pre class="language-js"><code>{{ data }}</code></pre>
-    </div>
+    <div class="code" ref="code"><slot/></div>
     <div class="field" ref="field" @click="toggle"/>
   </div>
 </template>
 
 <script>
 
-import 'prismjs'
-
 export default {
-  props: ['data'],
+  props: {
+    autoRun: Boolean,
+  },
 
   data: () => ({
     width: null,
@@ -32,6 +30,8 @@ export default {
   async mounted() {
     this.layout()
     addEventListener('resize', () => this.layout())
+    if (!this.$slots || !this.$slots.default) return
+    const code = this.$slots.default[0].elm.innerText
     await import('web-stg')
     this.field = new stg.Field(this.$refs.field, {
       background: '#282c34',
@@ -46,28 +46,35 @@ export default {
     })
     this.field.addEventListener('pause', () => this.active = false)
     this.field.addEventListener('resume', () => this.active = true)
-    this.load()
+    this.load(code)
   },
 
   methods: {
     layout() {
       this.$nextTick(() => {
-        this.width = Math.min(this.$el.parentElement.offsetWidth, 960, (innerHeight - 100) / 7 * 12)
+        const parentWidth = this.$el.parentElement
+          ? this.$el.parentElement.offsetWidth
+          : Infinity
+        this.width = Math.min(parentWidth, (innerHeight - 100) / 7 * 12)
       })
     },
     toggle() {
       if (!this.field) return
       this.field.toggle()
     },
-    load() {
+    load(code) {
       try {
         const exports = {}
         const module = { exports }
-        eval(`((exports,module)=>{${this.data}})(exports,module)`)
+        const require = () => stg
+        const args = '(exports,module,require)'
+        // pretend that I realized a module system
+        eval(`(${args}=>{${code}})${args}`)
         this.field.setBarrage(module.exports)
-        this.field.toggle()
+        if (this.autoRun) this.field.toggle()
       } catch (error) {
         console.error(error)
+        console.log('An error encounted in: \n' + code)
       }
     },
   }
@@ -82,6 +89,7 @@ export default {
   flex-direction row
   border-radius 0.4em
   overflow hidden
+  max-width 100%
   margin 0.85rem auto
 
 .code, .field
@@ -90,12 +98,18 @@ export default {
   margin 0
   padding 0
 
-.code pre
-  margin 0
-  height: calc(100% - 2.5em)
+.code > div
+  height 100%
   border-radius 0
+  &::before
+    display none
+  pre
+    margin 0
+    height calc(100% - 2.5em)
 
 .field
   cursor pointer
+  background $codeBgColor
 
 </style>
+

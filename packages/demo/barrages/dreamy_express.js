@@ -1,7 +1,6 @@
-const { Barrage, math: { sin, cos } } = require('@stg/core')
-const { Random } = require('@stg/utils')
+const { math, Random } = require('web-stg')
 
-module.exports = new Barrage({
+module.exports = {
   reference: {
     base: {
       state: {
@@ -26,7 +25,7 @@ module.exports = new Barrage({
       mutate(tick) {
         const rest = (tick % 144 - 72) / 72
         if (rest < 0) return
-        const scale = (1 - cos(Math.PI * rest)) / 2
+        const scale = (1 - math.cos(Math.PI * rest)) / 2
         this.x = this.prev.x * (1 - rest) + this.y
         this.x = this.prev.x + (this.next.x - this.prev.x) * scale
         this.y = this.prev.y + (this.next.y - this.prev.y) * scale
@@ -47,8 +46,8 @@ module.exports = new Barrage({
         mounted() {
           const theta = Math.PI * index / 16
           const phi = this.$refs.player.locate(this.$coord).thetaRadian
-          this.vx = 5 * sin(theta) * cos(phi) - 6 * cos(theta) * sin(phi)
-          this.vy = 5 * sin(theta) * sin(phi) + 6 * cos(theta) * cos(phi)
+          this.vx = 5 * math.sin(theta) * math.cos(phi) - 6 * math.cos(theta) * math.sin(phi)
+          this.vy = 5 * math.sin(theta) * math.sin(phi) + 6 * math.cos(theta) * math.cos(phi)
         },
         mutate(tick) {
           this.rho += 1 + tick / 300
@@ -58,4 +57,4 @@ module.exports = new Barrage({
       }))
     })
   },
-})
+}
