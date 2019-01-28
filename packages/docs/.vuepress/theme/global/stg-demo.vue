@@ -10,7 +10,6 @@
 <script>
 
 import 'prismjs'
-import 'web-stg'
 
 export default {
   props: ['data'],
@@ -30,9 +29,10 @@ export default {
     },
   },
 
-  mounted() {
+  async mounted() {
     this.layout()
     addEventListener('resize', () => this.layout())
+    await import('web-stg')
     this.field = new stg.Field(this.$refs.field, {
       background: '#282c34',
       frameRate: false,

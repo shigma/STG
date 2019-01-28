@@ -26,12 +26,9 @@
 
     <Content class="custom"/>
 
-    <div
-      class="footer"
-      v-if="data.footer"
-    >
-      {{ data.footer }}
-    </div>
+    <footer class="footer">
+      <Content slot-key="footer"/>
+    </footer>
   </div>
 </template>
 
@@ -57,6 +54,7 @@ export default {
 </script>
 
 <style lang="stylus">
+
 .home
   padding $navbarHeight 2rem 0
   max-width 960px
@@ -90,11 +88,15 @@ export default {
       border-bottom 1px solid darken($accentColor, 10%)
       &:hover
         background-color lighten($accentColor, 10%)
-  .footer
+  > .footer
     padding 2.5rem
     border-top 1px solid $borderColor
     text-align center
     color lighten($textColor, 25%)
+    > .content
+      padding 0
+      p
+        margin-top 1rem
 
 @media (max-width: $MQMobileNarrow)
   .home
@@ -113,4 +115,5 @@ export default {
       .action-button
         font-size 1rem
         padding 0.6rem 1.2rem
+        
 </style>

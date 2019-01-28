@@ -2,7 +2,6 @@
 home: true
 actionText: Get Started
 actionLink: /guide/
-footer: MIT Licensed | Copyright © 2018 Shigma
 ---
 
 ### 只需寥寥数行代码, 便可实现生动的弹幕
@@ -37,3 +36,7 @@ module.exports = {
   }
 }
 %%%
+
+::: slot footer
+[MIT](https://mit-license.org/) Licensed | Copyright © 2019 [Shigma](https://github.com/Shigma) | Powered by [VuePress](https://vuepress.vuejs.org/)
+:::

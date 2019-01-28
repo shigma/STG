@@ -9,6 +9,7 @@ module.exports = {
     path: resolve('dist'),
     libraryTarget: 'umd',
     library: 'stg',
+    globalObject: 'typeof self !== \'undefined\' ? self : this',
   },
   resolve: {
     extensions: ['.js', '.json']
