@@ -1,4 +1,5 @@
 module.exports = {
+  title: '波与粒',
   reference: {
     base: {
       state: {

@@ -1,6 +1,7 @@
 const { math, Random } = require('web-stg')
 
 module.exports = {
+  title: '梦幻快车',
   reference: {
     base: {
       state: {
