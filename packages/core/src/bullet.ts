@@ -1,4 +1,4 @@
-import math from './math'
+import { math } from '@stg/utils'
 import Templater, { Extension } from './templater'
 import Coordinate, { Point } from './coordinate'
 import CanvasPoint, { PointOptions } from './point'

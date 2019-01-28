@@ -14,11 +14,17 @@ module.exports = {
   resolve: {
     extensions: ['.js', '.json']
   },
+  devtool: 'source-map',
   module: {
     rules: [
       {
         test: /\.css$/,
         use: ['style-loader', 'css-loader'],
+      },
+      {
+        test: /\.(js|css)$/,
+        use: 'source-map-loader',
+        enforce: "pre"
       },
     ],
   },

@@ -3,6 +3,7 @@ const { resolve } = require('path')
 module.exports = {
   title: 'web-stg',
   base: '/STG/',
+  evergreen: true,
   description: '一个基于浏览器的弹幕引擎',
   dest: '../../docs/',
   plugins: {

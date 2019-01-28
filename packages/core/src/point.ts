@@ -1,7 +1,7 @@
 import Updater, { TaskHook, MountHook } from './updater'
 import Barrage, { BulletEmitter } from './barrage'
 import Coordinate, { Point } from './coordinate'
-import math from './math'
+import { math } from '@stg/utils'
 
 type MaybeArray<T> = T | T[]
 type MaybeFunction<T> = T | (() => T)
@@ -16,23 +16,17 @@ export interface PointOptions<T extends CanvasPoint = CanvasPoint> {
 }
 
 /** a general point in the canvas */
-export default class CanvasPoint extends Updater implements Point {
-  public x: number
-  public y: number
-  public face?: number
-  public rho?: number
-  public theta?: number
-  public isPlayer?: boolean
-
+export default class CanvasPoint extends Updater {
+  /** @protected point position */
+  protected _point: Point = { x: 0, y: 0, face: 0 }
   /** @protected current coordinate */
   protected _coordinate?: Coordinate
-
-  /** @private mounted hook */
-  private _mountedHook: MountHook<this>[]
-  /** @private mutate hook */
-  private _mutateHook: TaskHook<this>[]
-  /** @private display hook */
-  private _displayHook: MountHook<this>
+  /** @protected mounted hook */
+  protected _mountedHook: MountHook<this>[]
+  /** @protected mutate hook */
+  protected _mutateHook: TaskHook<this>[]
+  /** @protected display hook */
+  protected _displayHook: MountHook<this>
 
   /** @public the radius of the point */
   public radius?: number
@@ -45,8 +39,6 @@ export default class CanvasPoint extends Updater implements Point {
 
   constructor(options: PointOptions = {}) {
     super()
-    this.x = 0
-    this.y = 0
     this.show = options.show !== false
     this._displayHook = options.display
     this._initHooks('_mountedHook', options.mounted)
@@ -56,6 +48,33 @@ export default class CanvasPoint extends Updater implements Point {
       ? options.state.call(this)
       : options.state
     Object.assign(this, state)
+  }
+
+  public get x() {
+    return this._point.x
+  }
+
+  public get y() {
+    return this._point.y
+  }
+
+  public get face() {
+    return this._point.face
+  }
+
+  public set x(value) {
+    this._point.x = value
+    this._coordinate = null
+  }
+
+  public set y(value) {
+    this._point.y = value
+    this._coordinate = null
+  }
+
+  public set face(value) {
+    this._point.face = value
+    this._coordinate = null
   }
 
   private _initHooks(key: string, source: any) {
@@ -143,5 +162,15 @@ export default class CanvasPoint extends Updater implements Point {
       const point2 = this.$coord.resolve(coords[i + 2], coords[i + 3])
       this.$context.quadraticCurveTo(point1.x, point1.y, point2.x, point2.y)
     }
+  }
+
+  protected toJSON() {
+    const result: Partial<this> = {}
+    for (const key in this) {
+      if (typeof key === 'string' && key[0] !== '$' && key[0] !== '_' || key === '$tick') {
+        result[key] = this[key]
+      }
+    }
+    return result
   }
 }

@@ -10,6 +10,7 @@
 export default {
   props: {
     autoRun: Boolean,
+    showStat: Boolean,
   },
 
   data: () => ({
@@ -35,14 +36,7 @@ export default {
     await import('web-stg')
     this.field = new stg.Field(this.$refs.field, {
       background: '#282c34',
-      frameRate: false,
-    })
-    this.field.setPlayer({
-      state: {
-        velocity: 4.5,
-        color: 'red',
-        radius: 4,
-      },
+      frameRateStyle: this.showStat ? {} : undefined,
     })
     this.field.addEventListener('pause', () => this.active = false)
     this.field.addEventListener('resume', () => this.active = true)

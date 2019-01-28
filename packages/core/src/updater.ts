@@ -5,10 +5,19 @@ export type TaskHook<T extends Updater> = (this: T, tick: number) => void
 /** hook function for mounting tasks of an updater */
 export type MountHook<T extends Updater> = (this: T) => void
 
-interface TaskWrapper<T extends Updater> {
-  callback: TaskHook<T>
-  preserve: boolean
-  id: number
+interface UpdaterProperties {
+  /** store all scheduled hooks */
+  tasks: {
+    callback: TaskHook<Updater>
+    preserve: boolean
+    id: number
+  }[]
+  /** current task index */
+  currentTask: number
+  /** a list for tasks to remove */
+  tasksToRemove: Set<number>
+  /** store the last task index */
+  taskIndex: 0
 }
 
 /** general updating object */
@@ -16,23 +25,13 @@ export default class Updater {
   /** @static maximum number of scheduled tasks */
   static scheduleLimit = 256
 
-  readonly __STG__ = true
-
-  /** @private store all scheduled hooks */
-  private _tasks: TaskWrapper<this>[] = []
-  /** @private current task index */
-  private _currentTask: number
-  /** @private a list for tasks to remove */
-  private _tasksToRemove = new Set<number>()
-  /** @private store the last task index */
-  private _taskIndex = 0
+  /** @private updater properties */
+  private __updater__: UpdaterProperties
   /** @private mounted hook */
   public _mounted?(): void
 
   /** @public rendering context */
   public $context: CanvasRenderingContext2D
-  /** @public the tick number when the instance was created */
-  public $birth: number
   /** @public the current tick number */
   public $tick = 0
   /** @public parrent node */
@@ -40,6 +39,17 @@ export default class Updater {
 
   // inherit from state, methods and so on
   [K: string]: any
+
+  constructor() {
+    Object.defineProperty(this, '__updater__', {
+      value: {
+        tasks: [],
+        currentTask: null,
+        tasksToRemove: new Set<number>(),
+        taskIndex: 0,
+      }
+    })
+  }
 
   /** initialize */
   initialize(context?: CanvasRenderingContext2D, parent?: Updater): this {
@@ -53,29 +63,32 @@ export default class Updater {
   update(): void {
     // update tick number
     this.$tick += 1
+    const updater = this.__updater__
 
     // remove all the finished tasks
-    this._tasks = this._tasks.filter(task => !this._tasksToRemove.has(task.id))
+    updater.tasks = updater.tasks.filter(task => {
+      return !updater.tasksToRemove.has(task.id)
+    })
     
     // store all the tasks to prevent modification from task callbacks
-    const tasks = this._tasks
+    const tasks = updater.tasks
 
     // clear the set of tasks to remove
-    this._tasksToRemove.clear()
+    updater.tasksToRemove.clear()
 
     // execute all the tasks in sequence
     tasks.forEach((hook) => {
-      this._currentTask = hook.id
+      updater.currentTask = hook.id
       hook.callback.call(this, this.$tick)
       if (!hook.preserve) {
         // if not preserved, remove the task after executed
-        this._tasksToRemove.add(hook.id)
+        updater.tasksToRemove.add(hook.id)
       }
     })
 
     // check the amount of scheduled tasks for performance
-    if (this._tasks.length > Updater.scheduleLimit) {
-      throw new Error(`The amount of scheduled tasks (${this._tasks.length}) is beyond the limit!`)
+    if (updater.tasks.length > Updater.scheduleLimit) {
+      throw new Error(`The amount of scheduled tasks (${updater.tasks.length}) is beyond the limit!`)
     }
   }
 
@@ -87,8 +100,8 @@ export default class Updater {
    * @returns a number which indicates the task id
    */
   setTask(callback: TaskHook<this>, index = Infinity, preserve = true) {
-    const id = ++ this._taskIndex
-    this._tasks.splice(index, 0, { callback, preserve, id })
+    const id = ++ this.__updater__.taskIndex
+    this.__updater__.tasks.splice(index, 0, { callback, preserve, id })
     return id
   }
 
@@ -139,7 +152,8 @@ export default class Updater {
    * remove a scheduled task
    * @param id task id (default: current task id)
    */
-  removeTask(id = this._currentTask) {
-    this._tasksToRemove.add(id)
+  removeTask(id = this.__updater__.currentTask) {
+    if (!id) return
+    this.__updater__.tasksToRemove.add(id)
   }
 }

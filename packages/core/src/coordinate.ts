@@ -1,4 +1,4 @@
-import math from './math'
+import { math } from '@stg/utils'
 
 /** a general point in Cartesian coordinate system */
 export interface Point {

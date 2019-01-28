@@ -1,6 +1,6 @@
 {
   "name": "@stg/core",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
   "author": {
@@ -12,7 +12,9 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsc -b & node-sass styles/index.scss dist/index.min.css --output-style compressed"
+    "build": "yarn build:ts & yarn build:sass",
+    "build:ts": "tsc -b",
+    "build:sass": "node-sass styles/index.scss dist/index.min.css --output-style compressed --source-map true"
   },
   "dependencies": {
     "deepmerge": "^3.1.0"

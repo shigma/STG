@@ -63,7 +63,7 @@ export default class Barrage extends Updater {
     this.setTask(() => {
       for (const key in this.$refs) {
         const ref = this.$refs[key]
-        if (!ref.isPlayer) ref.update()
+        if (ref.$parent === this) ref.update()
       }
       this.$bullets.forEach(bullet => bullet.update())
       if (this.$bullets.length > Barrage.maxBulletCount) {
@@ -75,7 +75,7 @@ export default class Barrage extends Updater {
   render() {
     for (const key in this.$refs) {
       const ref = this.$refs[key]
-      if (!ref.isPlayer) ref.render()
+      if (ref.$parent === this) ref.render()
     }
     this.$bullets.forEach(bullet => bullet.render())
   }

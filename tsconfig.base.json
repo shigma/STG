@@ -4,6 +4,7 @@
     "declaration": true,
     "target": "esnext",
     "composite": true,
+    "sourceMap": true,
     "esModuleInterop": true
   }
 }

@@ -12,7 +12,7 @@
     "build:core": "yarn workspace @stg/core build",
     "build:utils": "yarn workspace @stg/utils build",
     "build:doc": "yarn workspace docs build",
-    "build:main": "tsc -b & yarn workspace @stg/core build & yarn workspace web-stg build",
+    "build": "tsc -b & yarn workspace @stg/core build:sass & yarn workspace web-stg build",
     "serve": "yarn workspace docs dev",
     "lint": "yarn workspace @stg/server lint"
   },

@@ -3,9 +3,5 @@
   "version": "1.0.0",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
-  "license": "MIT",
-  "dependencies": {
-    "@stg/core": "^0.1.0",
-    "@stg/utils": "^0.1.0"
-  }
+  "license": "MIT"
 }

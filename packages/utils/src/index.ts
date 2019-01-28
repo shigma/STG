@@ -1,5 +1,9 @@
-import * as Random from './random'
+import memorize from './memorize'
+import * as random from './random'
+import * as math from './math'
 
 export {
-  Random
+  random,
+  math,
+  memorize,
 }
