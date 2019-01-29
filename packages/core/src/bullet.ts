@@ -12,8 +12,8 @@ interface BulletPoint {
   judgeType?: JudgeType
   /** field type (default: `viewport`) */
   fieldType?: FieldType
-  /** reletive point */
-  relPoint?: string
+  /** relative point */
+  origin?: string | Point
   /** display layer */
   layer?: number
 }
@@ -42,7 +42,6 @@ export default class Bullet extends CanvasPoint implements BulletPoint {
   }
 
   public layer: number
-  public relPoint: string
   public judgeType: JudgeType
   public fieldType: FieldType
 
@@ -52,6 +51,8 @@ export default class Bullet extends CanvasPoint implements BulletPoint {
   public $id: number
   /** @public reference points */
   public $refs: BulletReferences
+  /** @public origin point */
+  public $origin: Point
 
   constructor(options: BulletOptions = {}) {
     const template = Bullet.templates.resolve(options)
@@ -69,20 +70,28 @@ export default class Bullet extends CanvasPoint implements BulletPoint {
     super(Bullet.templates.resolve(template))
     this.$refs = {}
     this.layer = template.layer === undefined ? 0 : template.layer
-    this.relPoint = template.relPoint === undefined ? 'base' : template.relPoint
+    const origin = template.origin === undefined ? 'origin' : template.origin
+    this._mountedHook.unshift(() => {
+      this.$origin = typeof origin === 'string'
+        ? this.$refs[origin] || { x: 0, y: 0, face: 0 }
+        : origin
+    })
   }
 
   get $coord(): Coordinate {
     if (!this._coordinate || this.$tick !== this._coordinate.$birth) {
-      const rel: Point = this.$refs[this.relPoint] || { x: 0, y: 0, face: 0 }
-      this._coordinate = new Coordinate(this.x + rel.x, this.y + rel.y, this.face + rel.face)
+      this._coordinate = new Coordinate(
+        this.x + this.$origin.x,
+        this.y + this.$origin.y,
+        this.face + this.$origin.face,
+      )
       this._coordinate.$birth = this.$tick
     }
     return this._coordinate
   }
 
   polarLocate(rho = this.rho, theta = this.theta) {
-    theta += ((this.$refs[this.relPoint] || { face: 0 }).face || 0)
+    theta += this.$origin.face
     this.x = rho * math.cos(Math.PI * theta)
     this.y = rho * math.sin(Math.PI * theta)
   }

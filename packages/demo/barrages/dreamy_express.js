@@ -3,7 +3,7 @@ const { math, random } = require('web-stg')
 module.exports = {
   title: '梦幻快车',
   reference: {
-    base: {
+    origin: {
       state: {
         x: 240,
         y: 160,

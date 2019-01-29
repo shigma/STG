@@ -20,7 +20,7 @@ interface KeyState extends Record<string, BoolInt> {
 }
 
 export interface PlayerOptions {
-  control: ControlMode
+  control?: ControlMode
   state?: PlayerState
   mounted?: MountHook<Player>
   mutate?: TaskHook<Player>
@@ -58,14 +58,17 @@ export default class Player extends CanvasPoint implements PlayerState {
   /** @private keyboard state */
   private _keyState: KeyState
 
-  constructor(options: PlayerOptions) {
-    options = Object.assign({}, options, {
+  constructor(options: PlayerOptions = {}) {
+    options.state = {
+      color: 'red',
+      radius: 4,
       lifeCount: 8,
       judgeRadius: 2.5,
       bombCount: 0,
       highSpeed: 5,
       lowSpeed: 2,
-    })
+      ...options.state,
+    }
     super(options)
     this._listeners = []
     this.control = options.control === undefined ? 'keyboard' : options.control

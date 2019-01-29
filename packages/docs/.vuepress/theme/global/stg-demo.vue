@@ -1,7 +1,7 @@
 <template>
   <div
     class="stg-demo"
-    :style="style"
+    :style="layoutStyle"
     :class="{ 'multi-file': multiFile }"
   >
     <div class="left">
@@ -61,17 +61,24 @@ import { getInnerText } from '../utils/vnode'
 import * as stg from '@stg/utils'
 import '../dist/icons.css'
 
-const aspectRatio = 7 / 4
 const updateInterval = 50
 
 export default {
   props: {
+    width: {
+      type: Number,
+      default: 480,
+    },
+    height: {
+      type: Number,
+      default: 560,
+    },
     autoRun: Boolean,
   },
 
   data: () => ({
     // layout
-    width: null,
+    layoutWidth: null,
     tabMovingToRight: 0,
     tabIndex: null,
     fileIndex: 0,
@@ -84,11 +91,14 @@ export default {
   }),
 
   computed: {
-    style() {
-      if (!this.width) return {}
+    aspectRatio() {
+      return this.width * 2 / this.height
+    },
+    layoutStyle() {
+      if (!this.layoutWidth) return {}
       return {
-        width: this.width + 'px',
-        height: this.width / aspectRatio + 'px',
+        width: this.layoutWidth + 'px',
+        height: this.layoutWidth / this.aspectRatio + 'px',
       }
     },
   },
@@ -140,6 +150,10 @@ export default {
     this.field.addEventListener('pause', () => this.active = false)
     this.field.addEventListener('resume', () => this.active = true)
     this.field.addEventListener('update', () => this.updateStats())
+
+    // set a player if it is not an auto-run game
+    if (!this.autoRun) this.field.setPlayer({})
+
     this.setBarrage()
   },
 
@@ -149,7 +163,7 @@ export default {
       const parentWidth = this.$el.parentElement
         ? this.$el.parentElement.offsetWidth
         : Infinity
-      this.width = Math.min(parentWidth, (innerHeight - 100) * aspectRatio)
+      this.layoutWidth = Math.min(parentWidth, (innerHeight - 100) * this.aspectRatio)
     },
     setBarrage() {
       if (!this.field) return

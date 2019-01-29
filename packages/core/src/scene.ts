@@ -101,15 +101,21 @@ export default class Scene extends Looping {
 
   setBarrage(barrage: BarrageOptions) {
     if (!barrage) return
+    this.pause()
+    this.clearScreen()
     this.barrage = new Barrage(barrage).initialize(this.context)
     if (this.player) this.barrage.$refs.player = this.player
+  }
+
+  clearScreen() {
+    this.context.clearRect(0, 0, this.canvas.width, this.canvas.height)
   }
 
   clear() {
     this.pause()
     this.removePlayer()
+    this.clearScreen()
     this.barrage = null
-    this.context.clearRect(0, 0, this.canvas.width, this.canvas.height)
   }
 
   update() {
@@ -118,7 +124,7 @@ export default class Scene extends Looping {
   }
 
   render() {
-    this.context.clearRect(0, 0, this.canvas.width, this.canvas.height)
+    this.clearScreen()
     if (this.barrage) this.barrage.render()
     if (this.player) this.player.render()
     this.showTitle()
