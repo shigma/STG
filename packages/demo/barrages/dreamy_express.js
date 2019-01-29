@@ -1,4 +1,4 @@
-const { math, Random } = require('web-stg')
+const { math, random } = require('web-stg')
 
 module.exports = {
   title: '梦幻快车',
@@ -14,8 +14,8 @@ module.exports = {
         transfer() {
           this.prev = this.$coord
           this.next = {
-            x: Random.transfer(this.x, 100, 380, 80, 120),
-            y: Random.real(80, 160),
+            x: random.transfer(this.x, 100, 380, 80, 120),
+            y: random.real(80, 160),
           }
         },
       },

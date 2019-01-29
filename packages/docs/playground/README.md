@@ -1,8 +1,9 @@
 ---
+title: playground
 playground: true
 ---
 
-<stg-demo multi-file>
+<stg-demo>
 <<< @/../demo/barrages/wave_and_particle.js
 <<< @/../demo/barrages/dreamy_express.js
 </stg-demo>

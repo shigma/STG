@@ -2,33 +2,85 @@
   <div
     class="stg-demo"
     :style="style"
-    :class="{ 'multi-file': multiFile }">
+    :class="{ 'multi-file': multiFile }"
+  >
     <div class="left">
-      <div class="toolbar">
-        <div class="tab" @click="switchTab(0)">浏览</div>
-        <div class="tab" @click="switchTab(1)">代码</div>
-        <div class="tab" @click="switchTab(2)">设置</div>
+      <div class="toolbar" v-if="multiFile">
+        <div
+          @click.stop="tabIndex = 0"
+          :class="['tab', { active: tabIndex === 0 }]"
+        >
+          <i class="icon-folder"/>浏览
+        </div>
+        <div
+          @click.stop="tabIndex = 1"
+          :class="['tab', { active: tabIndex === 1 }]"
+        >
+          <i class="icon-source"/>代码
+        </div>
+        <div
+          @click.stop="tabIndex = 2"
+          :class="['tab', { active: tabIndex === 2 }]"
+        >
+          <i class="icon-settings"/>设置
+        </div>
+        <span class="underline" :style="{ left: (tabIndex * 2 + 1) / 6 * 100 + '%' }"/>
       </div>
-      <div class="code"><slot/></div>
+      <div class="container">
+        <transition
+          name="container"
+          :leave-to-class="'transform-to-' + (tabMovingToRight ? 'left' : 'right')"
+          :enter-class="'transform-to-' + (tabMovingToRight ? 'right' : 'left')"
+        >
+          <div v-if="tabIndex === 0" class="explorer" key="0">
+            <div
+              v-for="(file, index) in files" :key="index"
+              :class="['item', { active: fileIndex === index }]"
+              @click.stop="fileIndex = index"
+              v-text="file.exports.title"
+            />
+          </div>
+          <div v-else-if="tabIndex === 1" class="code" ref="code" key="1">
+            <slot/>
+          </div>
+          <div v-else class="settings" key="2">
+            <h3>数据统计</h3>
+            <div>帧率: {{ tickRate || '--' }}</div>
+            <div>处理落率: {{ dropRate || '--' }}</div>
+          </div>
+        </transition>
+      </div>
     </div>
-    <div class="demo" ref="field" @click="toggle"/>
+    <div class="right" ref="field" @click="toggle"/>
   </div>
 </template>
 
 <script>
 
+import { getInnerText } from '../utils/vnode'
+import * as stg from '@stg/utils'
+import '../dist/icons.css'
+
 const aspectRatio = 7 / 4
+const updateInterval = 50
 
 export default {
   props: {
     autoRun: Boolean,
-    showStat: Boolean,
-    multiFile: Boolean,
   },
 
   data: () => ({
+    // layout
     width: null,
+    tabMovingToRight: 0,
+    tabIndex: null,
+    fileIndex: 0,
+
+    // stats
     active: false,
+    tickRate: null,
+    dropRate: null,
+    lastModified: 0,
   }),
 
   computed: {
@@ -41,57 +93,97 @@ export default {
     },
   },
 
+  watch: {
+    fileIndex: 'setBarrage',
+    async tabIndex(value, oldValue) {
+      if (this.oldValue !== null) {
+        this.tabMovingToRight = value > oldValue
+      }
+      if (this.tabIndex !== 1) return
+      await this.$nextTick()
+      ;[].forEach.call(this.$refs.code.childNodes, (node, index) => {
+        if (this.fileIndex === index) {
+          node.classList.remove('inactive')
+        } else {
+          node.classList.add('inactive')
+        }
+      })
+    },
+  },
+
+  created() {
+    this.tabIndex = 1
+    this.multiFile = this.$slots.default.length > 1
+    this.files = this.$slots.default.map((vnode) => {
+      const code = getInnerText(vnode)
+      const exports = {}
+      const module = { code, exports }
+      const require = () => stg
+      try {
+        // pretend that I realized a module system
+        const args = '(exports,module,require)'
+        eval(`(${args}=>{${code}})${args}`)
+      } catch (error) {
+        console.error(error)
+        console.warn('An error encounted in: \n' + code)
+      }
+      return module
+    })
+  },
+
   async mounted() {
     this.layout()
     addEventListener('resize', () => this.layout())
-    if (!this.$slots || !this.$slots.default) return
-    const code = this.$slots.default[0].elm.innerText
+    
     const stg = await import('web-stg')
-    this.field = new stg.Field(this.$refs.field, {
-      frameRateStyle: this.showStat ? {} : undefined,
-    })
+    this.field = new stg.Field(this.$refs.field)
     this.field.addEventListener('pause', () => this.active = false)
     this.field.addEventListener('resume', () => this.active = true)
-    this.load(code)
+    this.field.addEventListener('update', () => this.updateStats())
+    this.setBarrage()
   },
 
   methods: {
-    layout() {
-      this.$nextTick(() => {
-        const parentWidth = this.$el.parentElement
-          ? this.$el.parentElement.offsetWidth
-          : Infinity
-        this.width = Math.min(parentWidth, (innerHeight - 100) * aspectRatio)
-      })
+    async layout() {
+      await this.$nextTick()
+      const parentWidth = this.$el.parentElement
+        ? this.$el.parentElement.offsetWidth
+        : Infinity
+      this.width = Math.min(parentWidth, (innerHeight - 100) * aspectRatio)
+    },
+    setBarrage() {
+      if (!this.field) return
+      this.field.setBarrage(this.files[this.fileIndex].exports)
+      if (this.autoRun) this.field.toggle()
     },
     toggle() {
       if (!this.field) return
       this.field.toggle()
     },
-    load(code) {
-      try {
-        const exports = {}
-        const module = { exports }
-        const require = () => stg
-        const args = '(exports,module,require)'
-        // pretend that I realized a module system
-        eval(`(${args}=>{${code}})${args}`)
-        this.field.setBarrage(module.exports)
-        if (this.autoRun) this.field.toggle()
-      } catch (error) {
-        console.error(error)
-        console.log('An error encounted in: \n' + code)
-      }
+    updateStats() {
+      if (!this.field || this.field._frameId === null) return
+      const time = performance.now()
+      if (time - this.lastModified < updateInterval) return
+      const stat = this.field.getStatus()
+      if (!stat) return
+      this.tickRate = stat.tickRate.toFixed(1)
+      this.dropRate = Math.floor(stat.dropRate * 100) + '%'
+      this.lastModified = time
     },
-    switchTab(index) {},
   }
 }
 
 </script>
 
-<style lang="stylus" scoped>
+<style lang="stylus">
 
+$text = #dcdfe6
+$textHover = #ebeef5
+$active = lighten(#409eff, 20%)
 $border = 1px solid darken($codeBgColor, 20%)
+
+.inactive
+  display none
 
 .stg-demo
   display flex
@@ -102,39 +194,75 @@ $border = 1px solid darken($codeBgColor, 20%)
   background $codeBgColor
   margin 0.85rem auto
 
-.left, .demo
-  display inline-block
-  width 50%
-  margin 0
-  padding 0
+  .left, .right
+    display inline-block
+    width 50%
+    margin 0
+    padding 0
 
-.left
-  box-sizing border-box
-  border-right $border
+  .left
+    box-sizing border-box
+    border-right $border
 
 .toolbar
   height 10%
-  color white
   display flex
-  font-size 1.1em
-  user-select none
+  position relative
   border-bottom $border
+
+.underline
+  position absolute
+  background $active
+  height 2px
+  transition 0.3s ease
+  top 50%
+  transform translate(-50%, 1em)
+  width 4.4rem
+  z-index 100
 
 .tab
   height 100%
   width 33.33%
   display flex
-  cursor pointer
-  transition background 0.3s ease
   flex-direction row
   justify-content center
   align-items center
-  &:hover
-    background lighten($codeBgColor, 10%)
+  i
+    margin-right: 0.4em;
 
-.code
-  height 90%
+.toolbar .tab, .explorer .item
+  color $text
+  cursor pointer
+  user-select none
+  transition 0.3s ease
+  &:hover
+    color $textHover
+    background lighten($codeBgColor, 10%)
+  &.active
+    color $active
+
+.container
+  height 100%
+  opacity 1
+  position relative
+
+  .multi-file &
+    height 90%
+
   > div
+    left 0
+    right 0
+    height 100%
+    position absolute
+
+  .explorer .item
+    padding 0.4rem 1.2rem
+    &:first-child
+      margin-top 0.4rem
+    &:last-child
+      margin-bottom 0.4rem
+
+  .code div
     height 100%
     border-radius 0
     &::before
@@ -143,8 +271,23 @@ $border = 1px solid darken($codeBgColor, 20%)
       margin 0
       height calc(100% - 2.5em)
 
+  .settings
+    color $text
+    user-select none
+    padding 0 2em
+
+.transform-to-left
+  opacity 0
+  transform translateX(-100%)
+
+.transform-to-right
+  opacity 0
+  transform translateX(100%)
+
+.container-enter-active, .container-leave-active
+  transition 0.3s ease
+
 .stg-field
   cursor pointer
 
 </style>
-
