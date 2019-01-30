@@ -2,13 +2,13 @@ import { BulletOptions } from '@stg/core'
 
 export default {
   state: {
-    radius: 12,
+    radius: 14,
     judgeRadius: 8.5,
-    innerRadius: 8.5,
-    innerColor: 'white',
+    innerRadius: 9,
     color: 'blue',
+    innerColor: 'white',
   },
   display() {
-    this.fillCircle(this.getGradient(this.innerColor, this.innerRadius, this.color))
+    this.fillCircle(this.getGradient(this.innerColor, this.innerRadius))
   },
 } as BulletOptions

@@ -4,7 +4,7 @@ module.exports = {
   title: 'web-stg',
   base: '/STG/',
   evergreen: true,
-  description: '一个基于浏览器的弹幕引擎',
+  description: '一个基于 JavaScript 的弹幕引擎',
   dest: '../../docs/',
   plugins: {
     '@vuepress/register-components': {
@@ -20,6 +20,21 @@ module.exports = {
       { text: 'Guide', link: '/guide/' },
       { text: 'API', link: '/API/' },
       { text: 'GitHub', link: 'https://github.com/Shigma/STG' },
-    ]
+    ],
+    sidebar: {
+      '/guide/': [
+        '',
+        'FAQ',
+        'CHANGELOG'
+      ],
+      '/API/': [
+        '',
+        'updater-and-looping',
+        'point-and-coordinate',
+        'bullet-and-barrage',
+        'player-and-scene',
+        'utils'
+      ]
+    },
   },
 }

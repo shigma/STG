@@ -131,6 +131,24 @@ export default class CanvasPoint extends Updater {
     this.$context.fill()
   }
 
+  fillEllipse(
+    stroke = this.color,
+    fill = this.innerColor,
+    radiusX = this.radiusX,
+    radiusY = this.radiusY,
+    rotation = this.face,
+  ): void {
+    const { x, y } = this.$coord
+    this.$context.beginPath()
+    this.$context.strokeStyle = stroke
+    this.$context.lineWidth = 2
+    this.$context.ellipse(x, y, radiusX, radiusY, rotation * Math.PI, 0, math.twoPi)
+    this.$context.closePath()
+    this.$context.stroke()
+    this.$context.fillStyle = fill.output ? fill.output() : fill
+    this.$context.fill()
+  }
+
   getGradient(c1: any, r1: number, c2 = this.color, r2 = this.radius): CanvasGradient {
     const { x, y } = this.$coord
     const gradient = this.$context.createRadialGradient(x, y, r1, x, y, r2)

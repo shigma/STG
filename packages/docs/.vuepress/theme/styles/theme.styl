@@ -116,6 +116,8 @@ h1, h2, h3, h4, h5, h6
       margin-bottom 1rem
       + p, + pre, + .custom-block
         margin-top 2rem
+  .content:not(.custom) > & + &
+    padding-top 2.8em
   &:hover .header-anchor
     opacity: 1
 

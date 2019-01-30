@@ -259,6 +259,7 @@ $border = 1px solid darken($codeBgColor, 20%)
   height 100%
   opacity 1
   position relative
+  overflow hidden
 
   .multi-file &
     height 90%
