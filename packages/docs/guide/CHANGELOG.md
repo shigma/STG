@@ -5,6 +5,8 @@
 ### 重大变化
 
 - **core:** 移除 Bullet 构造函数的 `rel` 属性, 改为 `origin`, 同时支持传入 Point 类型.
+- **utils:** 新增库 `utils.color`, 用于处理颜色.
+- **utils:** 将库 `random` 更改为 `random`.
 
 ### 新特性
 

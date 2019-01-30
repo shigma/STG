@@ -67,3 +67,7 @@ sidebarDepth: 3
 
 - `stat.tickRate`: 当前帧率.
 - `stat.dropRate`: 当前处理落率.
+
+::: tip
+当前的处理落率计算方法可能存在一定的问题, 导致数值偏大.
+:::
