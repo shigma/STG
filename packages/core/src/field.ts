@@ -9,7 +9,6 @@ export interface FieldOptions extends SceneOptions {
 
 export default class Field extends Scene {
   public readonly element: HTMLElement
-  public readonly canvas: HTMLCanvasElement
 
   constructor(element: HTMLElement, options: FieldOptions = {}) {
     const canvas = element.appendChild(document.createElement('canvas'))

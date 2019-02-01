@@ -1,7 +1,8 @@
-import Updater, { TaskHook, MountHook } from './updater'
-import Barrage, { BulletEmitter } from './barrage'
-import Coordinate, { Point } from './coordinate'
 import { math } from '@stg/utils'
+import { angleUnit } from './config'
+import Coordinate, { Point } from './coordinate'
+import Barrage, { BulletEmitter } from './barrage'
+import Updater, { TaskHook, MountHook } from './updater'
 
 type MaybeArray<T> = T | T[]
 type MaybeFunction<T> = T | (() => T)
@@ -107,8 +108,8 @@ export default class CanvasPoint extends Updater {
   }
 
   movePolar(rho = this.rho, theta = this.theta): void {
-    this.x += rho * math.cos(Math.PI * theta)
-    this.y += rho * math.sin(Math.PI * theta)
+    this.x += rho * math.cos(angleUnit * theta)
+    this.y += rho * math.sin(angleUnit * theta)
   }
 
   /** emit bullets from the barrage */
@@ -142,7 +143,7 @@ export default class CanvasPoint extends Updater {
     this.$context.beginPath()
     this.$context.strokeStyle = stroke
     this.$context.lineWidth = 2
-    this.$context.ellipse(x, y, radiusX, radiusY, rotation * Math.PI, 0, math.twoPi)
+    this.$context.ellipse(x, y, radiusX, radiusY, rotation * angleUnit, 0, math.twoPi)
     this.$context.closePath()
     this.$context.stroke()
     this.$context.fillStyle = fill.output ? fill.output() : fill

@@ -45,7 +45,8 @@
           </div>
           <div v-else class="settings" key="2">
             <h3>数据统计</h3>
-            <div>帧率: {{ tickRate || '--' }}</div>
+            <div>逻辑帧率: {{ tickRate || '--' }}</div>
+            <div>物理帧率: {{ frameRate || '--' }}</div>
             <div>处理落率: {{ dropRate || '--' }}</div>
           </div>
         </transition>
@@ -86,8 +87,8 @@ export default {
     // stats
     active: false,
     tickRate: null,
+    frameRate: null,
     dropRate: null,
-    lastModified: 0,
   }),
 
   computed: {
@@ -146,10 +147,18 @@ export default {
     addEventListener('resize', () => this.layout())
     
     const stg = await import('web-stg')
-    this.field = new stg.Field(this.$refs.field)
-    this.field.addEventListener('pause', () => this.active = false)
-    this.field.addEventListener('resume', () => this.active = true)
-    this.field.addEventListener('update', () => this.updateStats())
+    this.field = new stg.Field(this.$refs.field, {
+      width: this.width,
+      height: this.height,
+      statsInterval: 50,
+      onPause: () => this.active = false,
+      onResume: () => this.active = true,
+      onStats: (stats) => {
+        this.tickRate = stats.tickRate.toFixed(1)
+        this.frameRate = stats.frameRate.toFixed(1)
+        this.dropRate = Math.floor(stats.dropRate * 100) + '%'
+      },
+    })
 
     // set a player if it is not an auto-run game
     if (!this.autoRun) this.field.setPlayer({})
@@ -173,16 +182,6 @@ export default {
     toggle() {
       if (!this.field) return
       this.field.toggle()
-    },
-    updateStats() {
-      if (!this.field || this.field._frameId === null) return
-      const time = performance.now()
-      if (time - this.lastModified < updateInterval) return
-      const stat = this.field.getStatus()
-      if (!stat) return
-      this.tickRate = stat.tickRate.toFixed(1)
-      this.dropRate = Math.floor(stat.dropRate * 100) + '%'
-      this.lastModified = time
     },
   }
 }

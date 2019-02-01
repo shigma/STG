@@ -1,4 +1,4 @@
-import Looping, { LoopingOptions, LoopingStatus } from './looping'
+import Looping, { LoopingOptions } from './looping'
 import Barrage, { BarrageOptions } from './barrage'
 import Player, { PlayerOptions } from './player'
 
@@ -15,18 +15,11 @@ export interface TextOptions extends TextStyle {
   textBaseline?: CanvasTextBaseline
 }
 
-interface FrameRateStyle extends TextStyle {
-  refreshInterval?: number
-  format?(stat: LoopingStatus): string
-}
-
-export interface SceneOptions {
+export interface SceneOptions extends LoopingOptions {
   title?: string
   player?: PlayerOptions
   barrage?: BarrageOptions
-  looping?: LoopingOptions
   titleStyle?: TextOptions
-  frameRateStyle?: FrameRateStyle
 }
 
 export default class Scene extends Looping {
@@ -35,42 +28,15 @@ export default class Scene extends Looping {
   public barrage: Barrage
   public player: Player
   public title: string
-
-  private frameRateStyle: FrameRateStyle & TextOptions
   private titleStyle: TextOptions
-  private _currentFrameRateText: string
-  private _lastModifyFrameRate: number
 
   constructor(public readonly canvas: HTMLCanvasElement, options: SceneOptions = {}) {
-    super(options.looping)
+    super(options)
     this.title = options.title || ''
     this.context = canvas.getContext('2d')
     this.setTitleStyle(options.titleStyle)
-    this.setFrameRateStyle(options.frameRateStyle)
     this.setPlayer(options.player)
     this.setBarrage(options.barrage)
-  }
-
-  setFrameRateStyle(options?: FrameRateStyle) {
-    if (!options) {
-      this.frameRateStyle = null
-      return
-    }
-    const fontSize = options.fontSize || 16
-    this.frameRateStyle = {
-      fontSize,
-      textAlign: 'right',
-      textBaseline: 'bottom',
-      fontColor: 'white',
-      x: this.canvas.width - fontSize / 4,
-      y: this.canvas.height - fontSize / 4,
-      fontFamily: 'Calibri, Candara, Segoe, "Segoe UI", Optima, Arial',
-      refreshInterval: 50,
-      format({ tickRate, dropRate }) {
-        return `Tick Rate: ${tickRate.toFixed(1)}, Drop Rate: ${Math.floor(dropRate * 100)}%`
-      },
-      ...options,
-    }
   }
 
   setTitleStyle(options: TextStyle = {}) {
@@ -128,7 +94,6 @@ export default class Scene extends Looping {
     if (this.barrage) this.barrage.render()
     if (this.player) this.player.render()
     this.showTitle()
-    this.showFrameRate()
   }
 
   showText(text: string, options: TextOptions) {
@@ -143,23 +108,5 @@ export default class Scene extends Looping {
     const option = this.title && this.titleStyle
     if (!option) return
     this.showText(this.title, option)
-  }
-
-  private showFrameRate() {
-    const option = this.frameRateStyle
-    if (!option) return
-
-    let text: string
-    const time = performance.now()
-    if (time - this._lastModifyFrameRate < option.refreshInterval) {
-      text = this._currentFrameRateText
-    } else {
-      const stat = this.getStatus()
-      if (!stat) return
-      text = this._currentFrameRateText = option.format(stat)
-      this._lastModifyFrameRate = time
-    }
-
-    this.showText(text, option)
   }
 }

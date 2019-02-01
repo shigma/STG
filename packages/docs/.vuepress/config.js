@@ -7,12 +7,11 @@ module.exports = {
   description: '一个基于 JavaScript 的弹幕引擎',
   dest: '../../docs/',
   plugins: {
+    '@vuepress/back-to-top': {},
+    '@vuepress/medium-zoom': {},
     '@vuepress/register-components': {
       componentsDir: `${__dirname}/theme/global/`
     },
-    '@vuepress/google-analytics': {},
-    '@vuepress/back-to-top': {},
-    '@vuepress/medium-zoom': {},
   },
   themeConfig: {
     nav: [

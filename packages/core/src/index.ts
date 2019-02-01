@@ -7,8 +7,10 @@ import Field, { FieldOptions } from './field'
 import Scene, { SceneOptions } from './scene'
 import Templater from './templater'
 import Updater from './updater'
+import * as config from './config'
 
 export {
+  config,
   Point,
   Barrage,
   Player,

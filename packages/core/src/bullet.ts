@@ -1,4 +1,5 @@
 import { math } from '@stg/utils'
+import { angleUnit } from './config'
 import Templater, { Extension } from './templater'
 import Coordinate, { Point } from './coordinate'
 import CanvasPoint, { PointOptions } from './point'
@@ -92,8 +93,8 @@ export default class Bullet extends CanvasPoint implements BulletPoint {
 
   polarLocate(rho = this.rho, theta = this.theta) {
     theta += this.$origin.face
-    this.x = rho * math.cos(Math.PI * theta)
-    this.y = rho * math.sin(Math.PI * theta)
+    this.x = rho * math.cos(angleUnit * theta)
+    this.y = rho * math.sin(angleUnit * theta)
   }
 
   hitPlayer() {
