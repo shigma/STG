@@ -12,15 +12,12 @@
     "dist"
   ],
   "scripts": {
-    "build": "yarn build:ts & yarn build:sass",
-    "build:ts": "tsc -b",
-    "build:sass": "node-sass styles/index.scss dist/index.min.css --output-style compressed --source-map true"
+    "build": "tsc -b"
   },
   "dependencies": {
     "deepmerge": "^3.1.0"
   },
   "devDependencies": {
-    "node-sass": "^4.11.0",
     "typescript": "^3.2.4"
   }
 }

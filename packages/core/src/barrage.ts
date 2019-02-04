@@ -1,4 +1,5 @@
 import Player from './player'
+import { AssetsOptions } from './assets'
 import Bullet, { BulletOptions } from './bullet'
 import CanvasPoint, { PointOptions } from './point'
 import Updater, { MountHook, TaskHook } from './updater'
@@ -6,6 +7,7 @@ import Updater, { MountHook, TaskHook } from './updater'
 type MaybeFunction<T> = T | (() => T)
 
 export interface BarrageOptions<T extends Barrage = Barrage> {
+  assets?: AssetsOptions
   state?: MaybeFunction<Record<string, any>>
   reference?: Record<string, CanvasPoint | PointOptions>
   mounted?: MountHook<T & Record<string, any>>

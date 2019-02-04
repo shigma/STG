@@ -1,30 +1,36 @@
-import Looping, { LoopingOptions } from './looping'
-import Barrage, { BarrageOptions } from './barrage'
-import Bullet, { BulletOptions } from './bullet'
-import Player, { PlayerOptions } from './player'
-import Coordinate, { Point } from './coordinate'
-import Field, { FieldOptions } from './field'
-import Scene, { SceneOptions } from './scene'
+import assets from './assets'
+import config from './config'
+import Barrage from './barrage'
+import Bullet from './bullet'
+import Coordinate from './coordinate'
+import Field from './field'
+import Looping from './looping'
+import Player from './player'
+import CanvasPoint from './point'
 import Templater from './templater'
 import Updater from './updater'
-import * as config from './config'
+
+export * from './assets'
+export * from './barrage'
+export * from './bullet'
+export * from './coordinate'
+export * from './field'
+export * from './looping'
+export * from './player'
+export * from './point'
+export * from './templater'
+export * from './updater'
 
 export {
+  assets,
   config,
-  Point,
   Barrage,
-  Player,
   Bullet,
-  Field,
-  Scene,
-  Looping,
-  Updater,
-  Templater,
-  SceneOptions,
+  CanvasPoint,
   Coordinate,
-  FieldOptions,
-  PlayerOptions,
-  BulletOptions,
-  BarrageOptions,
-  LoopingOptions,
+  Field,
+  Looping,
+  Player,
+  Templater,
+  Updater,
 }

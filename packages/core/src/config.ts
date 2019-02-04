@@ -1,1 +1,3 @@
-export const angleUnit = Math.PI
+export default {
+  angleUnit: Math.PI,
+}

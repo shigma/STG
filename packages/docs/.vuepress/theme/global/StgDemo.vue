@@ -59,10 +59,9 @@
 <script>
 
 import { getInnerText } from '../utils/vnode'
-import * as stg from '@stg/utils'
+import * as stg from 'web-stg/dist/stg.common'
+import 'web-stg/dist/stg.min.css'
 import '../dist/icons.css'
-
-const updateInterval = 50
 
 export default {
   props: {
@@ -146,7 +145,6 @@ export default {
     this.layout()
     addEventListener('resize', () => this.layout())
     
-    const stg = await import('web-stg')
     this.field = new stg.Field(this.$refs.field, {
       width: this.width,
       height: this.height,

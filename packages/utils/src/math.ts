@@ -1,27 +1,29 @@
 import memorize from './memorize'
 
-export const twoPi = Math.PI * 2
-export const halfPi = Math.PI / 2
+type MathExtension = typeof Math & {
+  twoPI: number
+  halfPI: number
+}
 
-export const sqrt = memorize(Math.sqrt)
-export const cbrt = memorize(Math.cbrt)
+const math = {} as MathExtension
+const cachedMethods = [
+  'sqrt', 'cbrt', 'exp',
+  'log', 'log2', 'log10',
+  'sin', 'cos', 'tan',
+  'asin', 'acos', 'atan',
+  'sinh', 'cosh', 'tanh',
+  'asinh', 'acosh', 'atanh',
+]
 
-export const exp = memorize(Math.exp)
-export const log = memorize(Math.log)
-export const log2 = memorize(Math.log2)
-export const log10 = memorize(Math.log10)
+Object.defineProperty(math, 'twoPI', { value: Math.PI * 2 })
+Object.defineProperty(math, 'halfPI', { value: Math.PI / 2 })
 
-export const sin = memorize(Math.sin)
-export const cos = memorize(Math.cos)
-export const tan = memorize(Math.tan)
-export const sinh = memorize(Math.sinh)
-export const cosh = memorize(Math.cosh)
-export const tanh = memorize(Math.tanh)
+Object.getOwnPropertyNames(Math).forEach((key) => {
+  Object.defineProperty(math, key, {
+    value: cachedMethods.includes(key)
+      ? memorize(Math[key])
+      : Math[key]
+  })
+})
 
-export const asin = memorize(Math.asin)
-export const acos = memorize(Math.acos)
-export const atan = memorize(Math.atan)
-export const atan2 = memorize(Math.atan2)
-export const asinh = memorize(Math.asinh)
-export const acosh = memorize(Math.acosh)
-export const atanh = memorize(Math.atanh)
+export default math

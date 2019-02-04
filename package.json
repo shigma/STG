@@ -11,10 +11,9 @@
     "build:bullets": "yarn workspace @stg/bullets build",
     "build:core": "yarn workspace @stg/core build",
     "build:utils": "yarn workspace @stg/utils build",
-    "build:doc": "yarn workspace docs build",
-    "build": "tsc -b & yarn workspace @stg/core build:sass & yarn workspace web-stg build",
-    "serve": "yarn workspace docs dev",
-    "lint": "yarn workspace @stg/server lint"
+    "build": "tsc -b & yarn workspace web-stg webpack",
+    "docs": "yarn workspace docs build",
+    "serve": "yarn workspace docs dev"
   },
   "devDependencies": {
     "@types/node": "^10.12.18",

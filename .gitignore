@@ -7,7 +7,7 @@
 **/dist/
 **/out/
 test.*
-packages/server/static/*
+packages/docs/.vuepress/public/lib
 
 # Package related files
 node_modules/

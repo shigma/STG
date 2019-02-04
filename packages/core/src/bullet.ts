@@ -1,10 +1,9 @@
 import { math } from '@stg/utils'
-import { angleUnit } from './config'
+import config from './config'
 import Templater, { Extension } from './templater'
 import Coordinate, { Point } from './coordinate'
 import CanvasPoint, { PointOptions } from './point'
 
-type StringMap<T = any> = Record<string, T>
 type JudgeType = 'square' | 'ortho' | 'tangent' | 'none'
 type FieldType = 'viewport' | 'distant' | 'timing' | 'infinite'
 
@@ -23,7 +22,8 @@ export interface BulletOptions extends PointOptions<Bullet>, BulletPoint {
   extends?: Extension<BulletOptions>
 }
 
-export interface BulletReferences extends StringMap<Coordinate> {
+export interface BulletReferences {
+  [key: string]: Coordinate
   player?: Coordinate
   base?: Coordinate
   src?: Coordinate
@@ -93,8 +93,8 @@ export default class Bullet extends CanvasPoint implements BulletPoint {
 
   polarLocate(rho = this.rho, theta = this.theta) {
     theta += this.$origin.face
-    this.x = rho * math.cos(angleUnit * theta)
-    this.y = rho * math.sin(angleUnit * theta)
+    this.x = rho * math.cos(config.angleUnit * theta)
+    this.y = rho * math.sin(config.angleUnit * theta)
   }
 
   hitPlayer() {

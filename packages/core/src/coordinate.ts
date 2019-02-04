@@ -1,5 +1,5 @@
 import { math } from '@stg/utils'
-import { angleUnit } from './config'
+import config from './config'
 
 /** a general point in Cartesian coordinate system */
 export interface Point {
@@ -39,8 +39,8 @@ export default class Coordinate implements Point {
 
   set face(value) {
     this._face = value || 0
-    this._cos = math.cos(angleUnit * value || 0)
-    this._sin = math.sin(angleUnit * value || 0)
+    this._cos = math.cos(config.angleUnit * value || 0)
+    this._sin = math.sin(config.angleUnit * value || 0)
   }
 
   get rho(): number {
@@ -49,7 +49,7 @@ export default class Coordinate implements Point {
   }
 
   get theta(): number {
-    return this._thetaRadian / angleUnit
+    return this._thetaRadian / config.angleUnit
   }
 
   get thetaRadian() {

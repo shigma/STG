@@ -10,7 +10,7 @@ web-stg 是一个基于 JavaScript 的弹幕引擎. 它包含多个部分:
 
 ```html
 <div id="stg"><!-- 弹幕效果将出现在这里 --></div>
-<script type="text/javascript" src="web-stg.min.js"></script>
+<script type="text/javascript" src="shigma.github.io/STG/stg.runtime.js"></script>
 <script>
   const field = new stg.Field(document.querySelector('#stg'))
   field.setPlayer({ /* 玩家配置 */ })

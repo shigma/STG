@@ -1,4 +1,5 @@
 import { TaskHook, MountHook } from './updater'
+import { AssetsOptions } from './assets'
 import { Point } from './coordinate'
 import CanvasPoint from './point'
 
@@ -20,6 +21,7 @@ interface KeyState extends Record<string, BoolInt> {
 }
 
 export interface PlayerOptions {
+  assets?: AssetsOptions
   control?: ControlMode
   state?: PlayerState
   mounted?: MountHook<Player>

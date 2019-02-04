@@ -1,5 +1,5 @@
 import { math } from '@stg/utils'
-import { angleUnit } from './config'
+import config from './config'
 import Coordinate, { Point } from './coordinate'
 import Barrage, { BulletEmitter } from './barrage'
 import Updater, { TaskHook, MountHook } from './updater'
@@ -108,8 +108,8 @@ export default class CanvasPoint extends Updater {
   }
 
   movePolar(rho = this.rho, theta = this.theta): void {
-    this.x += rho * math.cos(angleUnit * theta)
-    this.y += rho * math.sin(angleUnit * theta)
+    this.x += rho * math.cos(config.angleUnit * theta)
+    this.y += rho * math.sin(config.angleUnit * theta)
   }
 
   /** emit bullets from the barrage */
@@ -126,7 +126,7 @@ export default class CanvasPoint extends Updater {
   fillCircle(fill = this.color, radius = this.radius): void {
     const { x, y } = this.$coord
     this.$context.beginPath()
-    this.$context.arc(x, y, radius, 0, math.twoPi)
+    this.$context.arc(x, y, radius, 0, math.twoPI)
     this.$context.closePath()
     this.$context.fillStyle = fill.output ? fill.output() : fill
     this.$context.fill()
@@ -143,7 +143,7 @@ export default class CanvasPoint extends Updater {
     this.$context.beginPath()
     this.$context.strokeStyle = stroke
     this.$context.lineWidth = 2
-    this.$context.ellipse(x, y, radiusX, radiusY, rotation * angleUnit, 0, math.twoPi)
+    this.$context.ellipse(x, y, radiusX, radiusY, rotation * config.angleUnit, 0, math.twoPI)
     this.$context.closePath()
     this.$context.stroke()
     this.$context.fillStyle = fill.output ? fill.output() : fill

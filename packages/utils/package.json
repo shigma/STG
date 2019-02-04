@@ -13,5 +13,11 @@
   ],
   "scripts": {
     "build": "tsc -b"
+  },
+  "dependencies": {
+    "deepmerge": "^3.1.0"
+  },
+  "devDependencies": {
+    "typescript": "^3.2.4"
   }
 }

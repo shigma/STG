@@ -1,3 +1,6 @@
+import assets from './assets'
+import config from './config'
+
 /** hook function for interval tasks of an updater */
 export type IntervalHook<T extends Updater> = (this: T, tick: number, wave: number) => void
 /** hook function for general tasks of an updater */
@@ -30,6 +33,10 @@ export default class Updater {
   /** @private mounted hook */
   public _mounted?(): void
 
+  /** @public public assets */
+  public readonly $assets = assets
+  /** @public global configurations */
+  public readonly $config = config
   /** @public rendering context */
   public $context: CanvasRenderingContext2D
   /** @public the current tick number */

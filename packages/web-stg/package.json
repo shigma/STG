@@ -1,7 +1,8 @@
 {
   "name": "web-stg",
   "version": "0.3.0",
-  "main": "dist/web-stg.min.js",
+  "main": "dist/stg.common.js",
+  "module": "dist/stg.runtime.js",
   "typings": "index.d.ts",
   "author": {
     "name": "shigma",
@@ -12,7 +13,9 @@
     "dist"
   ],
   "scripts": {
-    "build": "webpack-cli --config build/webpack.conf.js"
+    "build": "yarn sass & yarn webpack",
+    "webpack": "webpack-cli --config build/webpack.conf.js",
+    "sass": "node-sass styles/index.scss dist/stg.min.css --output-style=compressed --source-map=true"
   },
   "dependencies": {
     "@stg/bullets": "^0.2.2",
@@ -21,10 +24,17 @@
   },
   "devDependencies": {
     "clean-webpack-plugin": "^1.0.1",
+    "copy-webpack-plugin": "^4.6.0",
     "css-loader": "^2.1.0",
+    "node-sass": "^4.11.0",
+    "raw-loader": "^1.0.0",
+    "sass-loader": "^7.1.0",
     "source-map-loader": "^0.2.4",
     "style-loader": "^0.23.1",
+    "ts-loader": "^5.3.3",
     "webpack": "^4.29.0",
-    "webpack-cli": "^3.2.1"
+    "webpack-cli": "^3.2.1",
+    "webpack-merge": "^4.2.1",
+    "worker-loader": "^2.0.0"
   }
 }

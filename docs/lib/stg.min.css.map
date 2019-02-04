@@ -1,0 +1,9 @@
+{
+	"version": 3,
+	"file": "stg.min.css",
+	"sources": [
+		"../styles/index.scss"
+	],
+	"names": [],
+	"mappings": "AAAA,AACE,UADQ,CACN,MAAM,AAAC,CACP,MAAM,CAAE,IAAI,CACZ,KAAK,CAAE,IAAI,CACZ"
+}
