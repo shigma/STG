@@ -1,7 +1,8 @@
-import assets, { loadAssets, AssetsOptions, loadImages, ImagesOptions } from './assets'
+import assets, { loadAssets } from './assets'
 import Looping, { LoopingOptions } from './looping'
 import Barrage, { BarrageOptions } from './barrage'
 import Player, { PlayerOptions } from './player'
+import config from './config'
 
 export interface TextStyle {
   fontSize?: number
@@ -27,7 +28,8 @@ export interface FieldOptions extends LoopingOptions {
 export default class Field extends Looping {
   public readonly context: CanvasRenderingContext2D
   public readonly canvas: HTMLCanvasElement
-  public readonly $assets = assets
+  public readonly assets = assets
+  public readonly config = config
 
   public barrage: Barrage
   public player: Player
@@ -117,13 +119,5 @@ export default class Field extends Looping {
     const option = this.title && this.titleStyle
     if (!option) return
     this.showText(this.title, option)
-  }
-
-  loadAssets(options?: AssetsOptions) {
-    return loadAssets(options)
-  }
-
-  loadImages(options?: ImagesOptions) {
-    return loadImages(options)
   }
 }

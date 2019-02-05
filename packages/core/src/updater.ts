@@ -44,9 +44,6 @@ export default class Updater {
   /** @public parrent node */
   public $parent: Updater
 
-  // inherit from state, methods and so on
-  [K: string]: any
-
   constructor() {
     Object.defineProperty(this, '__updater__', {
       value: {

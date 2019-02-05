@@ -7,7 +7,6 @@ import Field from './field'
 import Looping from './looping'
 import Player from './player'
 import CanvasPoint from './point'
-import Templater from './templater'
 import Updater from './updater'
 
 export * from './assets'
@@ -18,7 +17,6 @@ export * from './field'
 export * from './looping'
 export * from './player'
 export * from './point'
-export * from './templater'
 export * from './updater'
 
 export {
@@ -31,6 +29,5 @@ export {
   Field,
   Looping,
   Player,
-  Templater,
   Updater,
 }

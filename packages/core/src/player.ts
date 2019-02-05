@@ -44,7 +44,6 @@ interface PlayerState {
 }
 
 export default class Player extends CanvasPoint implements PlayerState {
-  public judgeRadius: number
   public lifeCount: number
   public bombCount: number
   public highSpeed: number

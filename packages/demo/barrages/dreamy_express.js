@@ -39,7 +39,7 @@ module.exports = {
   mounted() {
     this.setInterval(48, () => {
       this.emitBullets(32, (index) => ({
-        extends: 'medium',
+        display: 'medium',
         state: {
           rho: 0,
           color: 'maroon',

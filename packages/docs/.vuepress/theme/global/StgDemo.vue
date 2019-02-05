@@ -59,9 +59,11 @@
 <script>
 
 import { getInnerText } from '../utils/vnode'
-import * as stg from 'web-stg/dist/stg.common'
+import * as stg from 'web-stg'
 import 'web-stg/dist/stg.min.css'
 import '../dist/icons.css'
+
+stg.config.publicPath = '/assets/img/'
 
 export default {
   props: {
@@ -144,6 +146,14 @@ export default {
   async mounted() {
     this.layout()
     addEventListener('resize', () => this.layout())
+
+    await stg.loadImages({
+      bullet1: 'bullet1.png',
+    })
+
+    stg.Bullet.buildFromImages('bullet1', {
+      'scale?color=red': [32, 17, 48, 31, 2.4]
+    })
     
     this.field = new stg.Field(this.$refs.field, {
       width: this.width,
@@ -159,9 +169,9 @@ export default {
     })
 
     // set a player if it is not an auto-run game
-    if (!this.autoRun) this.field.setPlayer({})
+    if (!this.autoRun) await this.field.setPlayer({})
 
-    this.setBarrage()
+    await this.setBarrage()
   },
 
   methods: {
@@ -172,9 +182,9 @@ export default {
         : Infinity
       this.layoutWidth = Math.min(parentWidth, (innerHeight - 100) * this.aspectRatio)
     },
-    setBarrage() {
+    async setBarrage() {
       if (!this.field) return
-      this.field.setBarrage(this.files[this.fileIndex].exports)
+      await this.field.setBarrage(this.files[this.fileIndex].exports)
       if (this.autoRun) this.field.toggle()
     },
     toggle() {

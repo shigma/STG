@@ -2,7 +2,6 @@
   "name": "web-stg",
   "version": "0.3.0",
   "main": "dist/stg.common.js",
-  "module": "dist/stg.runtime.js",
   "typings": "index.d.ts",
   "author": {
     "name": "shigma",

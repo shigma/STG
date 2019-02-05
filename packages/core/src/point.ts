@@ -1,23 +1,22 @@
-import { math } from '@stg/utils'
 import config from './config'
+import { math } from '@stg/utils'
+import { checkImages } from './assets'
 import Coordinate, { Point } from './coordinate'
 import Barrage, { BulletEmitter } from './barrage'
 import Updater, { TaskHook, MountHook } from './updater'
 
-type MaybeArray<T> = T | T[]
 type MaybeFunction<T> = T | (() => T)
 
-export interface PointOptions<T extends CanvasPoint = CanvasPoint> {
-  show?: boolean
+export interface PointOptions<S = never, T extends CanvasPoint<S> = CanvasPoint<S>> {
   state?: MaybeFunction<Record<string, any>>
-  mounted?: MaybeArray<MountHook<T & Record<string, any>>>
-  mutate?: MaybeArray<TaskHook<T & Record<string, any>>>
-  display?: MountHook<T & Record<string, any>>
+  mounted?: MountHook<T & Record<string, any>>
+  mutate?: TaskHook<T & Record<string, any>>
+  display?: S | TaskHook<T & Record<string, any>>
   methods?: Record<string, (this: T & Record<string, any>, ...args: any[]) => any>
 }
 
 /** a general point in the canvas */
-export default class CanvasPoint extends Updater {
+export default class CanvasPoint<S = never> extends Updater {
   /** @protected point position */
   protected _point: Point = { x: 0, y: 0, face: 0 }
   /** @protected current coordinate */
@@ -27,23 +26,22 @@ export default class CanvasPoint extends Updater {
   /** @protected mutate hook */
   protected _mutateHook: TaskHook<this>[]
   /** @protected display hook */
-  protected _displayHook: MountHook<this>
+  protected _displayHook: TaskHook<this>
 
+  /** @public judge radius */
+  public judgeRadius?: number
   /** @public the radius of the point */
   public radius?: number
   /** @public the color of the point */
   public color?: any
-  /** @public whether the point is shown */
-  public show?: boolean
   /** @public parent barrage */
   public $parent: Barrage
 
-  constructor(options: PointOptions = {}) {
+  constructor(options: PointOptions<S> = {}) {
     super()
-    this.show = options.show !== false
-    this._displayHook = options.display
-    this._initHooks('_mountedHook', options.mounted)
-    this._initHooks('_mutateHook', options.mutate)
+    this._displayHook = options.display as TaskHook<this>
+    this._mountedHook = options.mounted ? [options.mounted] : []
+    this._mutateHook = options.mutate ? [options.mutate] : []
     Object.assign(this, options.methods)
     const state = typeof options.state === 'function'
       ? options.state.call(this)
@@ -78,25 +76,14 @@ export default class CanvasPoint extends Updater {
     this._coordinate = null
   }
 
-  private _initHooks(key: string, source: any) {
-    if (Array.isArray(source)) {
-      this[key] = source
-    } else if (source) {
-      this[key] = [source]
-    } else {
-      this[key] = []
-    }
-  }
-
   _mounted() {
     this._mountedHook.forEach(hook => hook.call(this))
     this._mutateHook.forEach(hook => this.setTask(hook))
   }
 
   render() {
-    if (!this._displayHook) return
-    if (!this.$context || this.show === false) return
-    this._displayHook.call(this)
+    if (!this.$context || typeof this._displayHook !== 'function') return
+    this._displayHook.call(this, this.$tick)
   }
 
   get $coord(): Coordinate {
@@ -107,7 +94,7 @@ export default class CanvasPoint extends Updater {
     return this._coordinate
   }
 
-  movePolar(rho = this.rho, theta = this.theta): void {
+  movePolar(rho = this['rho'], theta = this['theta']) {
     this.x += rho * math.cos(config.angleUnit * theta)
     this.y += rho * math.sin(config.angleUnit * theta)
   }
@@ -118,9 +105,48 @@ export default class CanvasPoint extends Updater {
   emitBullets(start: number, end: number, step: number, bullet: BulletEmitter): void
   emitBullets(...args: [number, any, any?, any?]): void {
     // set temporary source
-    this.$parent.$refs.src = this
+    this.$parent.$refs.source = this
     this.$parent.emitBullets(...args)
-    delete this.$parent.$refs.src
+    delete this.$parent.$refs.source
+  }
+
+  /**
+   * draw image from image assets
+   * @param id asset id
+   * @param scale scaling
+   * @param xStart x start
+   * @param yStart y start
+   * @param xEnd x end
+   * @param yEnd y end
+   * @param xOffset x offset
+   * @param yOffset y offset
+   */
+  drawImage(id: string, scale?: number): void
+  drawImage(id: string, scale: number, xStart: number, yStart: number, xEnd: number, yEnd: number, xOffset?: number, yOffset?: number): void
+  drawImage(
+    id: string,
+    scale: number = 1,
+    xStart: number = 0,
+    yStart: number = 0,
+    xEnd?: number,
+    yEnd?: number,
+    xOffset?: number,
+    yOffset?: number,
+  ) {
+    checkImages(id)
+    const { x, y } = this.$coord
+    const image = this.$assets.images[id]
+    if (!xEnd) xEnd = image.width
+    if (!yEnd) yEnd = image.height
+    const sw = xEnd - xStart
+    const sh = yEnd - yStart
+    const dw = sw * scale
+    const dh = sh * scale
+    if (xOffset === undefined) xOffset = sw / 2
+    if (yOffset === undefined) yOffset = sh / 2
+    const dx = x - xOffset * scale
+    const dy = y - yOffset * scale
+    this.$context.drawImage(image, xStart, yStart, sw, sh, dx, dy, dw, dh)
   }
 
   fillCircle(fill = this.color, radius = this.radius): void {
@@ -134,9 +160,9 @@ export default class CanvasPoint extends Updater {
 
   fillEllipse(
     stroke = this.color,
-    fill = this.innerColor,
-    radiusX = this.radiusX,
-    radiusY = this.radiusY,
+    fill = this['innerColor'],
+    radiusX = this['radiusX'],
+    radiusY = this['radiusY'],
     rotation = this.face,
   ): void {
     const { x, y } = this.$coord

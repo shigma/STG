@@ -103,10 +103,10 @@ export default class Looping implements LoopingEvents {
     value.sampleTime = value.tickLength * value.tickStorage
     Object.defineProperty(this, '__loop__', { value })
     // set event hooks
-    this.onPause = options.onPause || noopFunction
-    this.onResume = options.onResume || noopFunction
-    this.onStats = options.onStats || noopFunction
-    this.onError = options.onError || noopFunction
+    this.onPause = options.onPause || this.onPause || noopFunction
+    this.onResume = options.onResume || this.onResume || noopFunction
+    this.onStats = options.onStats || this.onStats || noopFunction
+    this.onError = options.onError || this.onError || noopFunction
     return this
   }
 

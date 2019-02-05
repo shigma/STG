@@ -1,53 +1,104 @@
-import { math } from '@stg/utils'
 import config from './config'
-import Templater, { Extension } from './templater'
+import { math } from '@stg/utils'
+import { TaskHook, MountHook } from './updater'
+import assets, { checkImages } from './assets'
 import Coordinate, { Point } from './coordinate'
 import CanvasPoint, { PointOptions } from './point'
+import builtinFields, { BulletField } from './builtin/fields'
+import builtinJudges, { BulletJudge } from './builtin/judges'
 
-type JudgeType = 'square' | 'ortho' | 'tangent' | 'none'
-type FieldType = 'viewport' | 'distant' | 'timing' | 'infinite'
+type JudgeType = 'square' | 'ortho' | 'tangent' | BulletJudge
+type FieldType = 'viewport' | 'distant' | 'timing' | BulletField
 
 interface BulletPoint {
   /** judge type (default: `ortho`) */
   judgeType?: JudgeType
   /** field type (default: `viewport`) */
   fieldType?: FieldType
-  /** relative point */
+  /** origin point */
   origin?: string | Point
   /** display layer */
   layer?: number
 }
 
-export interface BulletOptions extends PointOptions<Bullet>, BulletPoint {
-  extends?: Extension<BulletOptions>
+export interface BulletTemplate {
+  applied?: MountHook<Bullet & Record<string, any>>
+  display?: TaskHook<Bullet & Record<string, any>>
 }
+
+export interface BulletOptions extends PointOptions<string, Bullet>, BulletPoint {}
 
 export interface BulletReferences {
   [key: string]: Coordinate
   player?: Coordinate
-  base?: Coordinate
-  src?: Coordinate
+  origin?: Coordinate
+  source?: Coordinate
 }
 
-export default class Bullet extends CanvasPoint implements BulletPoint {
+export type BulletAsset = {
+  xStart: number
+  yStart: number
+  xEnd: number
+  yEnd: number
+  judgeRadius: number
+  scale?: number
+  xOffset?: number
+  yOffset?: number
+} | [number, number, number, number, number, number?, number?, number?]
+
+export default class Bullet extends CanvasPoint<string> implements BulletPoint {
   /** built-in templates */
-  static templates = new Templater<BulletOptions>({
-    hookProperties: ['mutate', 'mounted'],
-  })
+  static templates: Record<string, BulletTemplate> = {}
+  /** built-in fields */
+  static fields = builtinFields
+  /** built-in judges */
+  static judges = builtinJudges
 
   /** install new bullet templates */
-  static install(templates: Record<string, BulletOptions>): void
-  static install(name: string, options: BulletOptions): void
+  static install(templates: Record<string, BulletTemplate>): void
+  static install(name: string, options: BulletTemplate): void
   static install(...args: [any, any?]) {
-    this.templates.install(...args)
+    if (typeof args[0] === 'string') {
+      this.templates[args[0]] = args[1]
+    } else {
+      Object.assign(this.templates, args[0])
+    }
+  }
+
+  /** build bullet templates from image assets */
+  static buildFromImages(id: string, map: Record<string, BulletAsset>) {
+    checkImages(id)
+    for (const name in map) {
+      let options = map[name]
+      if (Array.isArray(options)) {
+        const [ xStart, yStart, xEnd, yEnd, judgeRadius, scale, xOffset, yOffset ] = options
+        options = { xStart, yStart, xEnd, yEnd, judgeRadius, scale, xOffset, yOffset }
+      }
+      const {
+        xStart,
+        yStart,
+        xEnd,
+        yEnd,
+        judgeRadius,
+        scale = 1,
+        xOffset = (xEnd - xStart) / 2,
+        yOffset = (yEnd - yStart) / 2,
+      } = options
+      this.templates[name] = {
+        applied() {
+          this.judgeRadius = judgeRadius
+        },
+        display() {
+          this.drawImage(id, scale, xStart, yStart, xEnd, yEnd, xOffset, yOffset)
+        }
+      }
+    }
   }
 
   public layer: number
   public judgeType: JudgeType
   public fieldType: FieldType
 
-  /** @public judge radius */
-  public judgeRadius?: number
   /** @public buller id */
   public $id: number
   /** @public reference points */
@@ -56,27 +107,75 @@ export default class Bullet extends CanvasPoint implements BulletPoint {
   public $origin: Point
 
   constructor(options: BulletOptions = {}) {
-    const template = Bullet.templates.resolve(options)
-    if (template.judgeType === undefined) {
-      template.judgeType = 'ortho'
-    } else if (template.judgeType === 'none') {
-      template.judgeType = null
-    }
-    if (template.fieldType === undefined) {
-      template.fieldType = 'viewport'
-    } else if (template.fieldType === 'infinite') {
-      template.fieldType = null
-    }
-    template.extends = [template.fieldType, template.judgeType]
-    super(Bullet.templates.resolve(template))
+    // temporarily store the display
+    const display = options.display
+    delete options.display
+
+    super(options)
     this.$refs = {}
-    this.layer = template.layer === undefined ? 0 : template.layer
-    const origin = template.origin === undefined ? 'origin' : template.origin
-    this._mountedHook.unshift(() => {
-      this.$origin = typeof origin === 'string'
-        ? this.$refs[origin] || { x: 0, y: 0, face: 0 }
-        : origin
+
+    // set bullet layer
+    this.layer = options.layer === undefined ? 0 : options.layer
+
+    // set judge hook and field hook
+    this.judgeType = options.judgeType === undefined ? 'ortho' : options.judgeType
+    this.fieldType = options.fieldType === undefined ? 'viewport' : options.fieldType
+    this.setTask((tick) => {
+      const judge = this._resolveHook(this.judgeType, Bullet.judges)
+      const player = this.$parent.$refs.player
+      if (judge && player && judge.call(this, player)) {
+        this.hitPlayer()
+      }
+
+      const field = this._resolveHook(this.fieldType, Bullet.fields)
+      if (field && field.call(this, tick)) {
+        this.destroy()
+      }
     })
+
+    // set originprivate point
+    const origin = options.origin || 'origin'
+    if (typeof origin !== 'string') {
+      this.$origin = origin
+    } else {
+      this._mountedHook.unshift(() => {
+        if (!this.$refs[origin]) {
+          if (config.showWarning) {
+            console.warn(`Warning: reference point ${origin} is not found.`)
+          }
+          this.$origin = { x: 0, y: 0, face: 0 }
+        } else {
+          this.$origin = this.$refs[origin]
+        }
+      })
+    }
+
+    // set initial display
+    this.display = display
+  }
+
+  set display(value: string | TaskHook<this>) {
+    if (typeof value === 'string') {
+      const template = Bullet.templates[value]
+      if (!template) throw new Error(`Template ${value} was not registered.`)
+      if (template.applied) template.applied.call(this)
+      this._displayHook = template.display
+    } else {
+      this._displayHook = value
+    }
+  }
+
+  get display() {
+    return this._displayHook
+  }
+
+  private _resolveHook<T>(hook: string | T, target: Record<string, T>) {
+    if (typeof hook !== 'string') return hook
+    if (!(hook in target)) {
+      throw new Error(`Plugin ${hook} was not found.`)
+    } else {
+      return target[hook]
+    }
   }
 
   get $coord(): Coordinate {
@@ -91,7 +190,7 @@ export default class Bullet extends CanvasPoint implements BulletPoint {
     return this._coordinate
   }
 
-  polarLocate(rho = this.rho, theta = this.theta) {
+  polarLocate(rho = this['rho'], theta = this['theta']) {
     theta += this.$origin.face
     this.x = rho * math.cos(config.angleUnit * theta)
     this.y = rho * math.sin(config.angleUnit * theta)

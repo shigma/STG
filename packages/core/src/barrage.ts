@@ -9,7 +9,7 @@ type MaybeFunction<T> = T | (() => T)
 export interface BarrageOptions<T extends Barrage = Barrage> {
   assets?: AssetsOptions
   state?: MaybeFunction<Record<string, any>>
-  reference?: Record<string, CanvasPoint | PointOptions>
+  reference?: Record<string, PointOptions>
   mounted?: MountHook<T & Record<string, any>>
   mutate?: TaskHook<T & Record<string, any>>
   methods?: Record<string, (this: T & Record<string, any>, ...args: any[]) => any>
@@ -17,10 +17,10 @@ export interface BarrageOptions<T extends Barrage = Barrage> {
 
 export type BulletEmitter = ((this: Barrage, index: number) => BulletOptions) | BulletOptions
 
-export interface BarrageReferences extends Record<string, CanvasPoint> {
+export interface BarrageReferences extends Record<string, CanvasPoint<any>> {
   player?: Player
-  src?: CanvasPoint
-  base?: CanvasPoint
+  source?: CanvasPoint<any>
+  origin?: CanvasPoint
 }
 
 export default class Barrage extends Updater {
@@ -34,7 +34,7 @@ export default class Barrage extends Updater {
   /** @protected mutate hook */
   protected _mutateHook: TaskHook<this & any>
   /** @protected reference points */
-  protected _references: Record<string, CanvasPoint | PointOptions>
+  protected _references: Record<string, PointOptions>
 
   /** @public bullets in the barrage */
   public $bullets: Bullet[]

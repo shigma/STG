@@ -21,7 +21,7 @@ module.exports = {
         this.emitBullets(count, (index) => ({
           origin,
           layer: ellipse ? 0 : 1,
-          extends: ellipse ? 'ellipse' : 'small',
+          display: ellipse ? 'ellipse' : 'small',
           state: {
             color,
             rho: 40,

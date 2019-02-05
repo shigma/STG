@@ -1,14 +1,14 @@
-import { BulletOptions } from '@stg/core'
+import { BulletTemplate } from '@stg/core'
 
 export default {
-  state: {
-    radiusX: 14,
-    radiusY: 7,
-    judgeRadius: 7,
-    color: 'blue',
-    innerColor: 'white',
+  applied() {
+    this.radiusX = 14
+    this.radiusY = 7
+    this.judgeRadius = 7
+    this.color = this.color || 'blue'
+    this.innerColor = this.innerColor || 'white'
   },
   display() {
     this.fillEllipse()
   },
-} as BulletOptions
+} as BulletTemplate
