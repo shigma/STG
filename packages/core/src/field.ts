@@ -1,8 +1,7 @@
-import assets, { loadAssets } from './assets'
+import { loadAssets } from './assets'
 import Looping, { LoopingOptions } from './looping'
 import Barrage, { BarrageOptions } from './barrage'
 import Player, { PlayerOptions } from './player'
-import config from './config'
 
 export interface TextStyle {
   fontSize?: number
@@ -28,8 +27,6 @@ export interface FieldOptions extends LoopingOptions {
 export default class Field extends Looping {
   public readonly context: CanvasRenderingContext2D
   public readonly canvas: HTMLCanvasElement
-  public readonly assets = assets
-  public readonly config = config
 
   public barrage: Barrage
   public player: Player

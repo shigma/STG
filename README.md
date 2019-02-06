@@ -4,6 +4,12 @@ A shooting game generator and player based on JavaScript.
 
 https://shigma.github.io/STG/
 
+## Documentation
+
+User Guide: https://shigma.github.io/STG/guide/
+API Documentation: https://shigma.github.io/STG/API/
+Change Log: https://shigma.github.io/STG/guide/CHANGELOG.html
+
 ## Get Started
 
 You can install web-stg on npm:

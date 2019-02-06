@@ -1,4 +1,5 @@
 import assets from './assets'
+import builtin from './template'
 import config from './config'
 import Barrage from './barrage'
 import Bullet from './bullet'
@@ -16,11 +17,14 @@ export * from './coordinate'
 export * from './field'
 export * from './looping'
 export * from './player'
+export * from './plugin'
 export * from './point'
+export * from './template'
 export * from './updater'
 
 export {
   assets,
+  builtin,
   config,
   Barrage,
   Bullet,

@@ -151,9 +151,8 @@ export default {
       bullet1: 'bullet1.png',
     })
 
-    stg.Bullet.buildFromImages('bullet1', {
-      'scale?color=red': [32, 17, 48, 31, 2.4]
-    })
+    console.log(stg)
+    stg.buildFromImages('bullet1', stg.touhou.v2_1)
     
     this.field = new stg.Field(this.$refs.field, {
       width: this.width,

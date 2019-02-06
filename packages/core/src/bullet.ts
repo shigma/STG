@@ -1,11 +1,11 @@
 import config from './config'
+import builtin from './template'
 import { math } from '@stg/utils'
+import { BulletField } from './builtin/fields'
+import { BulletJudge } from './builtin/judges'
 import { TaskHook, MountHook } from './updater'
-import assets, { checkImages } from './assets'
 import Coordinate, { Point } from './coordinate'
 import CanvasPoint, { PointOptions } from './point'
-import builtinFields, { BulletField } from './builtin/fields'
-import builtinJudges, { BulletJudge } from './builtin/judges'
 
 type JudgeType = 'square' | 'ortho' | 'tangent' | BulletJudge
 type FieldType = 'viewport' | 'distant' | 'timing' | BulletField
@@ -35,66 +35,7 @@ export interface BulletReferences {
   source?: Coordinate
 }
 
-export type BulletAsset = {
-  xStart: number
-  yStart: number
-  xEnd: number
-  yEnd: number
-  judgeRadius: number
-  scale?: number
-  xOffset?: number
-  yOffset?: number
-} | [number, number, number, number, number, number?, number?, number?]
-
 export default class Bullet extends CanvasPoint<string> implements BulletPoint {
-  /** built-in templates */
-  static templates: Record<string, BulletTemplate> = {}
-  /** built-in fields */
-  static fields = builtinFields
-  /** built-in judges */
-  static judges = builtinJudges
-
-  /** install new bullet templates */
-  static install(templates: Record<string, BulletTemplate>): void
-  static install(name: string, options: BulletTemplate): void
-  static install(...args: [any, any?]) {
-    if (typeof args[0] === 'string') {
-      this.templates[args[0]] = args[1]
-    } else {
-      Object.assign(this.templates, args[0])
-    }
-  }
-
-  /** build bullet templates from image assets */
-  static buildFromImages(id: string, map: Record<string, BulletAsset>) {
-    checkImages(id)
-    for (const name in map) {
-      let options = map[name]
-      if (Array.isArray(options)) {
-        const [ xStart, yStart, xEnd, yEnd, judgeRadius, scale, xOffset, yOffset ] = options
-        options = { xStart, yStart, xEnd, yEnd, judgeRadius, scale, xOffset, yOffset }
-      }
-      const {
-        xStart,
-        yStart,
-        xEnd,
-        yEnd,
-        judgeRadius,
-        scale = 1,
-        xOffset = (xEnd - xStart) / 2,
-        yOffset = (yEnd - yStart) / 2,
-      } = options
-      this.templates[name] = {
-        applied() {
-          this.judgeRadius = judgeRadius
-        },
-        display() {
-          this.drawImage(id, scale, xStart, yStart, xEnd, yEnd, xOffset, yOffset)
-        }
-      }
-    }
-  }
-
   public layer: number
   public judgeType: JudgeType
   public fieldType: FieldType
@@ -121,13 +62,13 @@ export default class Bullet extends CanvasPoint<string> implements BulletPoint {
     this.judgeType = options.judgeType === undefined ? 'ortho' : options.judgeType
     this.fieldType = options.fieldType === undefined ? 'viewport' : options.fieldType
     this.setTask((tick) => {
-      const judge = this._resolveHook(this.judgeType, Bullet.judges)
+      const judge = this._resolveHook(this.judgeType, builtin.judges)
       const player = this.$parent.$refs.player
       if (judge && player && judge.call(this, player)) {
         this.hitPlayer()
       }
 
-      const field = this._resolveHook(this.fieldType, Bullet.fields)
+      const field = this._resolveHook(this.fieldType, builtin.fields)
       if (field && field.call(this, tick)) {
         this.destroy()
       }
@@ -156,10 +97,10 @@ export default class Bullet extends CanvasPoint<string> implements BulletPoint {
 
   set display(value: string | TaskHook<this>) {
     if (typeof value === 'string') {
-      const template = Bullet.templates[value]
-      if (!template) throw new Error(`Template ${value} was not registered.`)
-      if (template.applied) template.applied.call(this)
-      this._displayHook = template.display
+      const wrapper = (builtin.templates[value] || []).find(wrapper => wrapper.test(this))
+      if (!wrapper) throw new Error(`A template matching ${value} was not found.`)
+      if (wrapper.applied) wrapper.applied.call(this)
+      this._displayHook = wrapper.display
     } else {
       this._displayHook = value
     }
@@ -209,3 +150,5 @@ export default class Bullet extends CanvasPoint<string> implements BulletPoint {
     })
   }
 }
+
+Object.assign(Bullet, builtin)

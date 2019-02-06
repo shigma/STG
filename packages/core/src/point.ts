@@ -7,6 +7,20 @@ import Updater, { TaskHook, MountHook } from './updater'
 
 type MaybeFunction<T> = T | (() => T)
 
+export interface ImageTransform {
+  scale?: number
+  rotate?: number
+  xOffset?: number
+  yOffset?: number
+}
+
+export interface ImageSelector {
+  xStart: number
+  yStart: number
+  xEnd: number
+  yEnd: number
+}
+
 export interface PointOptions<S = never, T extends CanvasPoint<S> = CanvasPoint<S>> {
   state?: MaybeFunction<Record<string, any>>
   mounted?: MountHook<T & Record<string, any>>
@@ -47,6 +61,7 @@ export default class CanvasPoint<S = never> extends Updater {
       ? options.state.call(this)
       : options.state
     Object.assign(this, state)
+    if (!this.color) this.color = config.defaultColor
   }
 
   public get x() {
@@ -94,11 +109,6 @@ export default class CanvasPoint<S = never> extends Updater {
     return this._coordinate
   }
 
-  movePolar(rho = this['rho'], theta = this['theta']) {
-    this.x += rho * math.cos(config.angleUnit * theta)
-    this.y += rho * math.sin(config.angleUnit * theta)
-  }
-
   /** emit bullets from the barrage */
   emitBullets(end: number, bullet: BulletEmitter): void
   emitBullets(start: number, end: number, bullet: BulletEmitter): void
@@ -110,43 +120,34 @@ export default class CanvasPoint<S = never> extends Updater {
     delete this.$parent.$refs.source
   }
 
-  /**
-   * draw image from image assets
-   * @param id asset id
-   * @param scale scaling
-   * @param xStart x start
-   * @param yStart y start
-   * @param xEnd x end
-   * @param yEnd y end
-   * @param xOffset x offset
-   * @param yOffset y offset
-   */
-  drawImage(id: string, scale?: number): void
-  drawImage(id: string, scale: number, xStart: number, yStart: number, xEnd: number, yEnd: number, xOffset?: number, yOffset?: number): void
-  drawImage(
-    id: string,
-    scale: number = 1,
-    xStart: number = 0,
-    yStart: number = 0,
-    xEnd?: number,
-    yEnd?: number,
-    xOffset?: number,
-    yOffset?: number,
-  ) {
+  /** draw image from image assets */
+  drawImage(id: string, transform: ImageTransform = {}, selector?: ImageSelector) {
     checkImages(id)
-    const { x, y } = this.$coord
+    const { x, y, face } = this.$coord
     const image = this.$assets.images[id]
-    if (!xEnd) xEnd = image.width
-    if (!yEnd) yEnd = image.height
+    const { xStart, xEnd, yStart, yEnd } = selector || {
+      xStart: 0,
+      yStart: 0,
+      xEnd: image.width,
+      yEnd: image.height,
+    }
     const sw = xEnd - xStart
     const sh = yEnd - yStart
+    const {
+      scale = 1,
+      xOffset = 0,
+      yOffset = 0,
+      rotate = face,
+    } = transform
     const dw = sw * scale
     const dh = sh * scale
-    if (xOffset === undefined) xOffset = sw / 2
-    if (yOffset === undefined) yOffset = sh / 2
-    const dx = x - xOffset * scale
-    const dy = y - yOffset * scale
+    const dx = -(sw / 2 + xOffset) * scale
+    const dy = -(sh / 2 + yOffset) * scale
+    const sin = math.sin(config.angleUnit * rotate)
+    const cos = math.cos(config.angleUnit * rotate)
+    this.$context.setTransform(-sin, cos, -cos, -sin, x, y)
     this.$context.drawImage(image, xStart, yStart, sw, sh, dx, dy, dw, dh)
+    this.$context.setTransform(1, 0, 0, 1, 0, 0)
   }
 
   fillCircle(fill = this.color, radius = this.radius): void {
@@ -209,6 +210,7 @@ export default class CanvasPoint<S = never> extends Updater {
     }
   }
 
+  /** serialize to JSON */
   protected toJSON() {
     const result: Partial<this> = {}
     for (const key in this) {
