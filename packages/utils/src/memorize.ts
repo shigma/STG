@@ -1,4 +1,4 @@
-const CACHE_SIZE = 1024
+const CACHE_SIZE = 16384
 
 interface CachedData<V> {
   index: number

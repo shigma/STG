@@ -1,4 +1,5 @@
 const CleanWebpackPlugin = require('clean-webpack-plugin')
+const CopyWebpackPlugin = require('copy-webpack-plugin')
 const merge = require('webpack-merge')
 const { resolve } = require('./utils')
 
@@ -59,6 +60,10 @@ const baseConfig = {
   },
   plugins: [
     new CleanWebpackPlugin(['dist']),
+    new CopyWebpackPlugin([{
+      from: resolve('dist'),
+      to: '../../docs/.vuepress/public/lib/',
+    }]),
   ],
 }
 

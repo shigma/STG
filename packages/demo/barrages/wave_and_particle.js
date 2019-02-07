@@ -1,17 +1,17 @@
 module.exports = {
   title: '波与粒',
   mounted() {
-    this.setInterval(8, (tick) => {
+    this.setInterval(6, (tick) => {
       this.emitBullets(7, (index) => ({
-        display: 'scale',
+        display: 'rice',
         origin: {
           x: 240,
           y: 280,
-          face: tick / 100,
+          face: tick ** 2 / 50,
         },
         state: {
           rho: 32,
-          color: 'red',
+          color: 'purple',
           face: index / 3.5,
         },
         mutate(tick) {

@@ -66,7 +66,7 @@ export function defineTemplate(...args: [any, any?]) {
   }
 }
 
-export type TransformArray = [number, number?, number?]
+export type TransformArray = [boolean, number?, number?, number?]
 export type SelectorArray = [number, number, number, number]
 
 export interface SelectorObject {
@@ -89,11 +89,12 @@ export function buildFromImages(id: string, map: BulletAssetMap) {
     let {
       selector,
       judgeRadius,
-      transform: [scale = 1, xOffset = 0, yOffset = 0] = [],
+      transform: [rotSym = false, scale = 1, xOffset = 0, yOffset = 0] = [],
     } = map[name]
     if (Array.isArray(selector)) selector = { data: [selector] }
     const interval = selector.interval || 1
     const dataset = selector.data
+    const rotate = rotSym ? undefined : 0
 
     defineTemplate(name, {
       applied() {
@@ -101,7 +102,7 @@ export function buildFromImages(id: string, map: BulletAssetMap) {
       },
       display(tick) {
         const [ xStart, yStart, xEnd, yEnd ] = dataset[Math.floor(tick / interval) % dataset.length]
-        this.drawImage(id, { scale, xOffset, yOffset }, { xStart, yStart, xEnd, yEnd })
+        this.drawImage(id, { rotate, scale, xOffset, yOffset }, { xStart, yStart, xEnd, yEnd })
       },
     })
   }
