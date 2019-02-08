@@ -2,9 +2,11 @@ import { TaskHook, MountHook } from './updater'
 import { AssetsOptions } from './assets'
 import { Point } from './coordinate'
 import CanvasPoint from './point'
+import Field from './field'
 
 type BoolInt = 0 | 1
-type ControlMode = 'keyboard' | 'mouse'
+export type ControlMode = 'keyboard' | 'mouse'
+
 type Listener = [
   EventTarget,
   string,
@@ -59,6 +61,9 @@ export default class Player extends CanvasPoint implements PlayerState {
   /** @private keyboard state */
   private _keyState: KeyState
 
+  /** @public parent field */
+  public $parent: Field
+
   constructor(options: PlayerOptions = {}) {
     options.state = {
       color: 'red',
@@ -84,12 +89,12 @@ export default class Player extends CanvasPoint implements PlayerState {
 
     if (this.control === 'mouse') {
       this._mouseState = { x: 0, y: 0 }
-      this._listen(this.$context.canvas, 'mousemove', (event: MouseEvent) => {
-        this._mouseState.x = event.clientX / this.$context.canvas.offsetWidth * this.$context.canvas.width
-        this._mouseState.y = event.clientY / this.$context.canvas.offsetHeight * this.$context.canvas.height
+      this.$parent.onMouseMove = event => {
+        this._mouseState.x = event.clientX / this.$context.canvas.clientWidth * this.$context.canvas.width
+        this._mouseState.y = event.clientY / this.$context.canvas.clientHeight * this.$context.canvas.height
         event.preventDefault()
         event.stopPropagation()
-      })
+      }
     } else if (this.control === 'keyboard') {
       this._keyState = {
         ArrowUp: 0,

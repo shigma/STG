@@ -1,7 +1,7 @@
 import { loadAssets } from './assets'
 import Looping, { LoopingOptions } from './looping'
 import Barrage, { BarrageOptions } from './barrage'
-import Player, { PlayerOptions } from './player'
+import Player, { PlayerOptions, ControlMode } from './player'
 
 export interface TextStyle {
   fontSize?: number
@@ -17,7 +17,7 @@ export interface TextOptions extends TextStyle {
 }
 
 export interface FieldOptions extends LoopingOptions {
-  title?: string
+  control?: ControlMode
   titleStyle?: TextOptions
   background?: string
   height?: number
@@ -28,10 +28,16 @@ export default class Field extends Looping {
   public readonly context: CanvasRenderingContext2D
   public readonly canvas: HTMLCanvasElement
 
+  public control?: ControlMode
   public barrage: Barrage
   public player: Player
   public title: string
   private titleStyle: TextOptions
+
+  public onMouseMove?(this: this, event: MouseEvent): void
+  public onMouseDown?(this: this, event: MouseEvent): void
+  public onMouseUp?(this: this, event: MouseEvent): void
+  public onClick?(this: this, event: MouseEvent): void
 
   constructor(public readonly element: HTMLElement, options: FieldOptions = {}) {
     super(options)
@@ -40,9 +46,23 @@ export default class Field extends Looping {
     this.canvas = element.appendChild(document.createElement('canvas'))
     this.canvas.height = options.height || 560
     this.canvas.width = options.width || 480
-    this.title = options.title || ''
     this.context = this.canvas.getContext('2d')
+    this.control = options.control
     this.setTitleStyle(options.titleStyle)
+
+    if (this.control === undefined) this.control = 'keyboard'
+    if (this.control) this.element.classList.add('use-' + this.control)
+    
+    element.addEventListener('mousemove', e => this.onMouseMove && this.onMouseMove(e))
+    element.addEventListener('mousedown', e => this.onMouseDown && this.onMouseDown(e))
+    element.addEventListener('mouseup', e => this.onMouseUp && this.onMouseUp(e))
+    element.addEventListener('click', e => this.onClick && this.onClick(e))
+
+    this.onClick = event => {
+      this.toggle()
+      event.preventDefault()
+      event.stopPropagation()
+    }
   }
 
   setTitleStyle(options: TextStyle = {}) {
@@ -63,12 +83,18 @@ export default class Field extends Looping {
     if (!options) return
     this.removePlayer()
     await loadAssets(options.assets)
-    this.player = new Player(options).initialize(this.context)
+    this.player = new Player({
+      control: this.control,
+      ...options,
+    }).initialize(this.context, this, this.barrage)
     if (this.barrage) this.barrage.$refs.player = this.player
   }
 
   removePlayer() {
-    if (this.player) this.player.destory()
+    if (this.player) {
+      this.player.destory()
+      this.player = null
+    }
     if (this.barrage) delete this.barrage.$refs.player
   }
 
@@ -77,8 +103,9 @@ export default class Field extends Looping {
     this.pause()
     this.clearScreen()
     await loadAssets(options.assets)
-    this.barrage = new Barrage(options).initialize(this.context)
+    this.barrage = new Barrage(options)
     if (this.player) this.barrage.$refs.player = this.player
+    this.barrage.initialize(this.context, this)
   }
 
   clearScreen() {

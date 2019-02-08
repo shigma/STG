@@ -2,7 +2,7 @@ import { BulletAssetMap } from '@stg/core'
 import { bullet16x16p, bullet16x8p } from './utils'
 
 export default {
-  ...bullet16x16p('scale', 2.4, 0, 16, [true, 1, 0, 3]),
+  ...bullet16x16p('scaly', 2.4, 0, 16, [true, 1, 0, 3]),
   ...bullet16x16p('ring', 4, 0, 32),
   ...bullet16x16p('small', 4, 0, 48),
   ...bullet16x16p('rice', 2.4, 0, 64, [true]),

@@ -1,5 +1,6 @@
 import config from './config'
 import builtin from './template'
+import Barrage from './barrage'
 import { math } from '@stg/utils'
 import { BulletField } from './builtin/fields'
 import { BulletJudge } from './builtin/judges'
@@ -46,6 +47,8 @@ export default class Bullet extends CanvasPoint<string> implements BulletPoint {
   public $refs: BulletReferences
   /** @public origin point */
   public $origin: Point
+  /** @public parent field */
+  public $parent: Barrage
 
   constructor(options: BulletOptions = {}) {
     // temporarily store the display
@@ -63,7 +66,7 @@ export default class Bullet extends CanvasPoint<string> implements BulletPoint {
     this.fieldType = options.fieldType === undefined ? 'viewport' : options.fieldType
     this.setTask((tick) => {
       const judge = this._resolveHook(this.judgeType, builtin.judges)
-      const player = this.$parent.$refs.player
+      const player = this.$barrage.$refs.player
       if (judge && player && judge.call(this, player)) {
         this.hitPlayer()
       }
@@ -121,30 +124,25 @@ export default class Bullet extends CanvasPoint<string> implements BulletPoint {
 
   get $coord(): Coordinate {
     if (!this._coordinate || this.$tick !== this._coordinate.$birth) {
-      this._coordinate = new Coordinate(
-        this.x + this.$origin.x,
-        this.y + this.$origin.y,
-        this.face + this.$origin.face,
-      )
+      this._coordinate = Coordinate.from(this.$origin).resolve(this)
       this._coordinate.$birth = this.$tick
     }
     return this._coordinate
   }
 
   polarLocate(rho = this['rho'], theta = this['theta']) {
-    theta += this.$origin.face
     this.x = rho * math.cos(config.angleUnit * theta)
     this.y = rho * math.sin(config.angleUnit * theta)
   }
 
   hitPlayer() {
-    this.$parent.$refs.player.lifeCount -= 1
+    this.$barrage.$refs.player.lifeCount -= 1
     this.destroy()
   }
 
   destroy() {
     const $id = this.$id
-    this.$parent.setTimeout(0, function() {
+    this.$barrage.setTimeout(0, function() {
       const index = this.$bullets.findIndex(bullet => bullet.$id === $id)
       if (index >= 0) this.$bullets.splice(index, 1)
     })

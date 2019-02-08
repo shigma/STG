@@ -1,3 +1,4 @@
+import Field from './field'
 import Player from './player'
 import { AssetsOptions } from './assets'
 import Bullet, { BulletOptions } from './bullet'
@@ -40,6 +41,8 @@ export default class Barrage extends Updater {
   public $bullets: Bullet[]
   /** @public reference coordinates */
   public $refs: BarrageReferences
+  /** @public parent field */
+  public $parent: Field
 
   constructor(options: BarrageOptions = {}) {
     super()
@@ -56,9 +59,8 @@ export default class Barrage extends Updater {
   }
 
   _mounted() {
-    this.$refs = {}
-    if (this._mountedHook) this._mountedHook()
-    if (this._mutateHook) this.setTask(this._mutateHook)
+    if (typeof this._mountedHook === 'function') this._mountedHook()
+    if (typeof this._mutateHook === 'function') this.setTask(this._mutateHook)
     for (const key of Object.keys(this._references)) {
       this.setRefPoint(key, this._references[key])
     }
@@ -91,7 +93,7 @@ export default class Barrage extends Updater {
   setRefPoint(...args: any[]): number | string {
     const options: PointOptions = args[args.length - 1]
     const key = args.length > 1 ? args[0] : ++ this._pointCounter
-    this.$refs[key] = new CanvasPoint(options).initialize(this.$context, this)
+    this.$refs[key] = new CanvasPoint(options).initialize(this.$context, this, this)
     return key
   }
 
@@ -119,7 +121,7 @@ export default class Barrage extends Updater {
       for (const key in this.$refs) {
         bullet.$refs[key] = this.$refs[key].$coord
       }
-      bullet.initialize(this.$context, this)
+      bullet.initialize(this.$context, this, this)
       const index = this.$bullets.findIndex(({ layer }) => layer > bullet.layer)
       if (index < 0) {
         this.$bullets.push(bullet)

@@ -8,8 +8,8 @@ export const colorSeries = {
     'black', 'red', 'magenta', 'blue', 'cyan', 'green', 'yellow', 'gray',
   ],
   16: [
-    'black', 'maroon', 'red', 'purple', 'magenta', 'darkblue', 'blue', '',
-    'cyan', '', 'green', 'yellowgreen', '', 'yellow', 'orange', 'gray',
+    'black', 'maroon', 'red', 'purple', 'magenta', 'darkblue', 'blue', 'darkcyan',
+    'cyan', 'darkgreen', 'green', 'yellowgreen', 'darkyellow', 'yellow', 'orange', 'gray',
   ],
 }
 

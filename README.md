@@ -6,9 +6,9 @@ https://shigma.github.io/STG/
 
 ## Documentation
 
-User Guide: https://shigma.github.io/STG/guide/
-API Documentation: https://shigma.github.io/STG/API/
-Change Log: https://shigma.github.io/STG/guide/CHANGELOG.html
+- User Guide: https://shigma.github.io/STG/guide/
+- API Documentation: https://shigma.github.io/STG/API/
+- Change Log: https://shigma.github.io/STG/guide/CHANGELOG.html
 
 ## Get Started
 

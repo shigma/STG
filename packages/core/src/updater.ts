@@ -1,5 +1,6 @@
 import assets from './assets'
 import config from './config'
+import Barrage from './barrage'
 
 /** hook function for interval tasks of an updater */
 export type IntervalHook<T extends Updater> = (this: T, tick: number, wave: number) => void
@@ -41,8 +42,10 @@ export default class Updater {
   public $context: CanvasRenderingContext2D
   /** @public the current tick number */
   public $tick = 0
-  /** @public parrent node */
-  public $parent: Updater
+  /** @public parent object */
+  public $parent: any
+  /** @public barrage */
+  public $barrage: Barrage
 
   constructor() {
     Object.defineProperty(this, '__updater__', {
@@ -56,9 +59,10 @@ export default class Updater {
   }
 
   /** initialize */
-  initialize(context?: CanvasRenderingContext2D, parent?: Updater): this {
+  initialize(context: CanvasRenderingContext2D, parent: any, barrage?: Barrage): this {
     this.$context = context
     this.$parent = parent
+    this.$barrage = barrage
     if (this._mounted) this._mounted()
     return this
   }
@@ -146,7 +150,7 @@ export default class Updater {
       const wave = Math.floor(tick / interval)
       const rest = wave * interval - tick
       if (wave > 0 && rest >= 0 && rest < interval) {
-        callback.call(this, this.$tick)
+        callback.call(this, this.$tick, wave)
         if (wave >= times) return this.removeTask()
       }
     }, 0)

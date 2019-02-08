@@ -9,14 +9,18 @@ export interface Point {
   y: number
   /** polar radius */
   rho?: number
-  /** polar angle (in the unit of π) */
+  /** polar angle (in the unit of `config.angleUnit`) */
   theta?: number
-  /** point orientation (in the unit of π) */
+  /** point orientation (in the unit of `config.angleUnit`) */
   face?: number
 }
 
 /** a sub coordinate system in Cartesian coordinate system */
 export default class Coordinate implements Point {
+  static from(point: Point) {
+    return new Coordinate(point.x, point.y, point.face)
+  }
+  
   public x: number
   public y: number
   public $birth?: number
@@ -49,7 +53,7 @@ export default class Coordinate implements Point {
   }
 
   get theta(): number {
-    return this._thetaRadian / config.angleUnit
+    return this.thetaRadian / config.angleUnit
   }
 
   get thetaRadian() {
@@ -61,7 +65,7 @@ export default class Coordinate implements Point {
     return (this.x - point.x) ** 2 + (this.y - point.y) ** 2
   }
 
-  resolve(coordinate: Coordinate): Coordinate
+  resolve(point: Point): Coordinate
   resolve(x: number, y: number, face?: number): Coordinate
   resolve(...args: [any, any?, any?]) {
     let x: number, y: number, face: number
@@ -79,7 +83,7 @@ export default class Coordinate implements Point {
     )
   }
 
-  locate(coordinate: Coordinate): Coordinate
+  locate(point: Point): Coordinate
   locate(x: number, y: number, face?: number): Coordinate
   locate(...args: [any, any?, any?]) {
     let x: number, y: number, face: number

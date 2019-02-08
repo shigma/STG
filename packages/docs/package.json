@@ -9,15 +9,14 @@
     "build": "vuepress build ."
   },
   "devDependencies": {
-    "@vuepress/plugin-back-to-top": "^1.0.0-alpha.35",
-    "@vuepress/plugin-google-analytics": "^1.0.0-alpha.35",
-    "@vuepress/plugin-medium-zoom": "^1.0.0-alpha.35",
-    "@vuepress/plugin-notification": "^1.0.0-alpha.35",
-    "@vutex/vuepress-plugin-component-container": "^0.1.3",
+    "@vuepress/plugin-back-to-top": "^1.0.0-alpha.36",
+    "@vuepress/plugin-google-analytics": "^1.0.0-alpha.36",
+    "@vuepress/plugin-medium-zoom": "^1.0.0-alpha.36",
+    "@vuepress/plugin-notification": "^1.0.0-alpha.36",
     "sass-loader": "^7.1.0",
     "style-loader": "^0.23.1",
     "ts-loader": "^5.3.3",
-    "vuepress": "^1.0.0-alpha.35",
+    "vuepress": "^1.0.0-alpha.36",
     "web-stg": "^0.3.1"
   }
 }

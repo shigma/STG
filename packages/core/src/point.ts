@@ -1,8 +1,8 @@
 import config from './config'
 import { math } from '@stg/utils'
 import { checkImages } from './assets'
+import { BulletEmitter } from './barrage'
 import Coordinate, { Point } from './coordinate'
-import Barrage, { BulletEmitter } from './barrage'
 import Updater, { TaskHook, MountHook } from './updater'
 
 type MaybeFunction<T> = T | (() => T)
@@ -48,8 +48,6 @@ export default class CanvasPoint<S = never> extends Updater {
   public radius?: number
   /** @public the color of the point */
   public color?: any
-  /** @public parent barrage */
-  public $parent: Barrage
 
   constructor(options: PointOptions<S> = {}) {
     super()
@@ -103,7 +101,7 @@ export default class CanvasPoint<S = never> extends Updater {
 
   get $coord(): Coordinate {
     if (!this._coordinate || this.$tick !== this._coordinate.$birth) {
-      this._coordinate = new Coordinate(this.x, this.y, this.face)
+      this._coordinate = Coordinate.from(this)
       this._coordinate.$birth = this.$tick
     }
     return this._coordinate
@@ -115,9 +113,9 @@ export default class CanvasPoint<S = never> extends Updater {
   emitBullets(start: number, end: number, step: number, bullet: BulletEmitter): void
   emitBullets(...args: [number, any, any?, any?]): void {
     // set temporary source
-    this.$parent.$refs.source = this
-    this.$parent.emitBullets(...args)
-    delete this.$parent.$refs.source
+    this.$barrage.$refs.source = this
+    this.$barrage.emitBullets(...args)
+    delete this.$barrage.$refs.source
   }
 
   /** draw image from image assets */
