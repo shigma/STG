@@ -50,18 +50,19 @@ module.exports = {
             x: random.transfer(this.x, 100, 380, 80, 120),
             y: random.real(80, 160),
           }
-          this.setInterval(4, 10, () => {
+          this.setInterval(4, 15, () => {
             this.emitBullets(9, (index) => ({
               layer: 1,
+              origin: this.prev,
               display: 'scaly',
               state: {
                 x: 0,
                 y: 16 * (index - 4),
                 color: scheme[index],
-                speed: 8 - math.abs(index - 4) / 2,
+                speed: 5 - math.abs(index - 4) / 4,
               },
               mutate(tick) {
-                this.x = this.speed * tick
+                this.x += this.speed * (1 + tick / 32)
               },
             }))
           })
