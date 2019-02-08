@@ -4,11 +4,16 @@ function to256(scale: number): number {
 }
 
 export default class Color {
-  /** transparent color */
-  static transparent = new Color(0, 0, 0, 0)
+  static scheme4 = ['red', 'blue', 'green', 'yellow']
+  static scheme8 = ['black', 'red', 'magenta', 'blue', 'cyan', 'green', 'yellow', 'gray']
+  static scheme16 = [
+    'black', 'maroon', 'red', 'purple', 'magenta', 'darkblue', 'blue', 'darkcyan',
+    'cyan', 'darkgreen', 'green', 'yellowgreen', 'darkyellow', 'yellow', 'orange', 'gray',
+  ]
 
-  /** css builtin colors */
+  /** built-in CSS colors */
   static builtin: Record<string, Color> = {
+    transparent: new Color(0, 0, 0, 0),
     aliceblue: Color.hex('#f0f8ff'),
     antiquewhite: Color.hex('#faebd7'),
     aqua: Color.hex('#00ffff'),

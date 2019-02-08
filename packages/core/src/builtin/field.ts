@@ -1,6 +1,5 @@
+import { TaskHook } from '../updater'
 import Bullet from '../bullet'
-
-export type BulletField = (this: Bullet, tick: number) => boolean
 
 export default {
   distant() {
@@ -16,4 +15,4 @@ export default {
     const border = this['fieldBorder'] || 10
     return y < -border || y > height + border || x < -border || x > width + border
   },
-} as Record<string, BulletField> 
+} as Record<string, TaskHook<Bullet, boolean>> 

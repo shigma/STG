@@ -25,25 +25,23 @@ module.exports = {
       methods: {
         updateFacing(tick, wave = 0) {
           this.face = this.$parent.$refs.player.$coord.locate(this).theta + 1
-          if (wave) {
-            this.emitBullets(32, (index) => ({
-              display: 'medium',
-              state: {
-                rho: 4,
-                color: 'maroon',
-              },
-              mounted() {
-                const theta = math.PI * index / 16
-                this.vx = 5 * math.cos(theta)
-                this.vy = 6 * math.sin(theta)
-              },
-              mutate(tick) {
-                this.rho += 1 + tick / 300
-                this.x = this.rho * this.vx
-                this.y = this.rho * this.vy
-              },
-            }))
-          }
+          this.emitBullets(32, (index) => ({
+            display: 'medium',
+            state: {
+              rho: 4,
+              color: 'maroon',
+            },
+            mounted() {
+              const theta = math.PI * index / 16
+              this.vx = 5 * math.cos(theta)
+              this.vy = 6 * math.sin(theta)
+            },
+            mutate(tick) {
+              this.rho += 1 + tick / 300
+              this.x = this.rho * this.vx
+              this.y = this.rho * this.vy
+            },
+          }))
           if (wave % 3) return
           this.prev = this.$coord
           this.next = {

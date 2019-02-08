@@ -69,9 +69,9 @@ export default class Player extends CanvasPoint implements PlayerState {
       color: 'red',
       radius: 4,
       lifeCount: 8,
-      judgeRadius: 2.5,
+      judgeRadius: 3,
       bombCount: 0,
-      highSpeed: 5,
+      highSpeed: 4.5,
       lowSpeed: 2,
       ...options.state,
     }
@@ -143,12 +143,13 @@ export default class Player extends CanvasPoint implements PlayerState {
       this.x -= v * this._keyState.ArrowLeft
       this.y += v * this._keyState.ArrowDown
       this.y -= v * this._keyState.ArrowUp
-      
-      if (this.x < 0) this.x = 0
-      if (this.y < 0) this.y = 0
-      if (this.x > this.$context.canvas.width) this.x = this.$context.canvas.width
-      if (this.y > this.$context.canvas.height) this.y = this.$context.canvas.height
     }
+
+    const { left, right, bottom, top } = this.$parent.movingScope
+    if (this.x < left) this.x = left
+    if (this.y < top) this.y = top
+    if (this.x > right) this.x = right
+    if (this.y > bottom) this.y = bottom
   }
 
   render() {

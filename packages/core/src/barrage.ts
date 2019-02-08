@@ -93,7 +93,8 @@ export default class Barrage extends Updater {
   setRefPoint(...args: any[]): number | string {
     const options: PointOptions = args[args.length - 1]
     const key = args.length > 1 ? args[0] : ++ this._pointCounter
-    this.$refs[key] = new CanvasPoint(options).initialize(this.$context, this, this)
+    this.$refs[key] = new CanvasPoint(options)
+    this.$refs[key].initialize(this.$context, this, this)
     return key
   }
 

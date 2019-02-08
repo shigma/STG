@@ -1,8 +1,9 @@
 import { parse } from 'querystring'
 import { checkImages } from './assets'
 import { BulletTemplate } from './bullet'
-import builtinFields from './builtin/fields'
-import builtinJudges from './builtin/judges'
+import builtinBlurs from './builtin/blur'
+import builtinFields from './builtin/field'
+import builtinJudges from './builtin/judge'
 
 export interface BulletTemplateWrapper extends BulletTemplate {
   weight: number
@@ -16,11 +17,14 @@ const templates: Record<string, BulletTemplateWrapper[]> = {}
 const fields = builtinFields
 /** built-in judges */
 const judges = builtinJudges
+/** built-in blur effects */
+const blurs = builtinBlurs
 
 export default {
   templates,
   fields,
   judges,
+  blurs,
 }
 
 /** define new bullet templates */

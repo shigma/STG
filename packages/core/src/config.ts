@@ -3,6 +3,7 @@ export interface Configurations {
   defaultColor: string
   publicPath: string
   showWarning: boolean
+  grazeRadius: number
 }
 
 export default {
@@ -10,4 +11,5 @@ export default {
   defaultColor: 'blue',
   publicPath: '',
   showWarning: true,
+  grazeRadius: 20,
 } as Configurations

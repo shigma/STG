@@ -5,7 +5,7 @@ import Barrage from './barrage'
 /** hook function for interval tasks of an updater */
 export type IntervalHook<T extends Updater> = (this: T, tick: number, wave: number) => void
 /** hook function for general tasks of an updater */
-export type TaskHook<T extends Updater> = (this: T, tick: number) => void
+export type TaskHook<T extends Updater, R = void> = (this: T, tick: number) => R
 /** hook function for mounting tasks of an updater */
 export type MountHook<T extends Updater> = (this: T) => void
 

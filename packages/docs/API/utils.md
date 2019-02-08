@@ -37,15 +37,17 @@ sidebarDepth: 3
 
 ## 颜色 (color)
 
-我们提供了一系列与颜色相关的函数, 你可以通过 `stg.color` 来使用它们的. 值得一提的是, 由这个库中的函数返回的实例可以直接在其他 API 的颜色接口中使用.
+我们提供了一系列与颜色相关的函数, 你可以通过 `stg.color` 来使用它们的. 由这个库中的函数返回的实例可以直接在其他 API 的颜色接口中使用.
 
 ### color.builtin
 
 包含了全体 [CSS 颜色](https://developer.mozilla.org/zh-CN/docs/Web/CSS/color_value)的一个对象. 你可以使用诸如 `color.builtin.blue` 来获得一个蓝色实例.
 
-### color.transparent
+### color.scheme4
+### color.scheme8
+### color.scheme16
 
-一个透明色 `#0000` 实例.
+返回一个由 4 / 8 / 16 个颜色字符串构成的数组, 表示东方 Project 风格中典型的颜色方案.
 
 ### color.rgb(r, g, b, a?)
 ### color.hsl(h, s, l, a?)

@@ -12,7 +12,7 @@ module.exports = {
   },
   methods: {
     setEmitter(interval, count, xStart, xEnd, yStart, yEnd, speed, color, ellipse = false) {
-      this.setInterval(interval, (tick) => {
+      this.setInterval(interval, () => {
         const origin = {
           x: random.real(xStart, xEnd) * 480,
           y: random.real(yStart, yEnd) * 560,

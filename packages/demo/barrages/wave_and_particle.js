@@ -3,6 +3,7 @@ module.exports = {
   mounted() {
     this.setInterval(6, (tick) => {
       this.emitBullets(7, (index) => ({
+        blur: 'small',
         display: 'rice',
         origin: {
           x: 240,

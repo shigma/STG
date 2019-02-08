@@ -1,5 +1,5 @@
 import { loadAssets } from './assets'
-import Looping, { LoopingOptions } from './looping'
+import Looping, { LoopingOptions, LoopingStats } from './looping'
 import Barrage, { BarrageOptions } from './barrage'
 import Player, { PlayerOptions, ControlMode } from './player'
 
@@ -17,11 +17,26 @@ export interface TextOptions extends TextStyle {
 }
 
 export interface FieldOptions extends LoopingOptions {
+  /** border height */
+  borderHeight?: number
+  /** border width */
+  borderWidth?: number
   control?: ControlMode
   titleStyle?: TextOptions
   background?: string
   height?: number
   width?: number
+}
+
+export interface FieldStats extends LoopingStats {
+  bulletCount?: number
+}
+
+interface Rectangle {
+  left: number
+  right: number
+  top: number
+  bottom: number
 }
 
 export default class Field extends Looping {
@@ -32,6 +47,8 @@ export default class Field extends Looping {
   public barrage: Barrage
   public player: Player
   public title: string
+  
+  public readonly movingScope: Rectangle
   private titleStyle: TextOptions
 
   public onMouseMove?(this: this, event: MouseEvent): void
@@ -50,6 +67,14 @@ export default class Field extends Looping {
     this.control = options.control
     this.setTitleStyle(options.titleStyle)
 
+    const { borderHeight = 18, borderWidth = 9 } = options
+    this.movingScope = {
+      left: borderWidth,
+      top: borderHeight,
+      right: this.canvas.width - borderWidth,
+      bottom: this.canvas.height - borderHeight,
+    }
+
     if (this.control === undefined) this.control = 'keyboard'
     if (this.control) this.element.classList.add('use-' + this.control)
     
@@ -63,6 +88,13 @@ export default class Field extends Looping {
       event.preventDefault()
       event.stopPropagation()
     }
+  }
+
+  getStatus() {
+    const stats = super.getStatus.call(this) as FieldStats
+    if (!stats) return
+    stats.bulletCount = this.barrage ? this.barrage.$bullets.length : 0
+    return stats
   }
 
   setTitleStyle(options: TextStyle = {}) {
