@@ -3,7 +3,11 @@ export interface Configurations {
   defaultColor: string
   publicPath: string
   showWarning: boolean
-  grazeRadius: number
+  scheduleLimit: number
+  maxBulletCount: number
+  grazeFilter: string
+  fogEffectTimeout: number
+  imageUpdateInterval: number
 }
 
 export default {
@@ -11,5 +15,9 @@ export default {
   defaultColor: 'blue',
   publicPath: '',
   showWarning: true,
-  grazeRadius: 20,
+  scheduleLimit: 256,
+  maxBulletCount: 4096,
+  grazeFilter: 'sepia(0.6) saturate(4)',
+  fogEffectTimeout: 3,
+  imageUpdateInterval: 4,
 } as Configurations

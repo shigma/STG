@@ -1,8 +1,8 @@
 {
   "extends": "./tsconfig.base",
   "references": [
-    { "path": "./packages/bullets" },
     { "path": "./packages/core" },
+    { "path": "./packages/touhou" },
     { "path": "./packages/utils" },
   ],
   "files": []

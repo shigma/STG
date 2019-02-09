@@ -1,19 +1,20 @@
+const { math } = require('web-stg')
+
 module.exports = {
   title: '波与粒',
   mounted() {
-    this.setInterval(6, (tick) => {
-      this.emitBullets(7, (index) => ({
-        blur: 'small',
+    this.setInterval(3, (tick) => {
+      this.emitBullets(9, (index) => ({
         display: 'rice',
         origin: {
           x: 240,
           y: 280,
-          face: tick ** 2 / 50,
+          face: math.sin(tick / 30),
         },
         state: {
-          rho: 32,
+          rho: 16,
           color: 'purple',
-          face: index / 3.5,
+          face: index / 4.5,
         },
         mutate(tick) {
           this.rho += 2 + tick / 40

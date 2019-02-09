@@ -11,6 +11,17 @@ export default class Color {
     'cyan', 'darkgreen', 'green', 'yellowgreen', 'darkyellow', 'yellow', 'orange', 'gray',
   ]
 
+  static fallback = {
+    maroon: 'red',
+    purple: 'magenta',
+    darkblue: 'blue',
+    darkcyan: 'cyan',
+    darkgreen: 'green',
+    yellowgreen: 'green',
+    darkyellow: 'yellow',
+    orange: 'yellow',
+  } as Record<string, string>
+
   /** built-in CSS colors */
   static builtin: Record<string, Color> = {
     transparent: new Color(0, 0, 0, 0),

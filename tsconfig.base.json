@@ -5,6 +5,7 @@
     "target": "esnext",
     "composite": true,
     "sourceMap": true,
+    "noImplicitAny": true,
     "esModuleInterop": true
   }
 }

@@ -1,49 +1,89 @@
 import config from './config'
 import { resolve } from 'url'
 
-const assets = {
-  images: {},
+interface AssetWrapper<T> {
+  state?: 1 | 2
+  promise: Promise<T>
+  value?: T
+  error?: any
 }
 
-export default assets as AssetsResolved
+abstract class AssetManager<T> {
+  private _map = {} as Record<string, string>
+  private _data = {} as Record<string, AssetWrapper<T>>
+  protected _resolve?(response: Response): Promise<T>
 
-export type ImagesOptions = Record<string, string>
-export type ImagesResolved = Record<string, ImageBitmap>
-
-export async function loadImages(source: ImagesOptions = {}) {
-  const requests = [] as Promise<ImageBitmap>[]
-  for (const key in source) {
-    if (!(key in assets.images)) {
-      assets.images[key] = fetch(resolve(config.publicPath, source[key]))
-        .then(response => response.blob())
-        .then(createImageBitmap)
-        .then(image => assets.images[key] = image)
-        .catch(() => delete assets.images[key])
+  private async _load(source: string) {
+    if (!(source in this._data)) {
+      const promise = fetch(resolve(config.publicPath, source)).then(this._resolve)
+      this._data[source] = { promise }
     }
-    requests.push(assets.images[key])
+    const wrapper = this._data[source]
+    if (wrapper.state === 1) {
+      return wrapper.value
+    } else if (wrapper.state === 2) {
+      return
+    }
+    try {
+      const value = await wrapper.promise
+      wrapper.state = 1
+      return wrapper.value = value
+    } catch (error) {
+      wrapper.error = error
+      wrapper.state = 2
+    }
   }
-  await Promise.all(requests)
-  return assets.images as ImagesResolved
+
+  async load(options: ImageOptions = {}) {
+    Object.assign(this._map, options)
+    return Promise.all(Object.keys(options).map(key => this._load(options[key])))
+  }
+
+  private _get(key: string) {
+    if (!(key in this._map)) {
+      throw new Error(`Asset ${key} has not been registered.`)
+    }
+    return this._data[this._map[key]]
+  }
+
+  get(...keys: string[]): T[] {
+    return keys.map((key) => {
+      const data = this._get(key)
+      if (data.state !== 1) {
+        throw new Error(`Asset ${key} has not been loaded.`)
+      }
+      return data.value
+    })
+  }
+
+  async check(...keys: string[]): Promise<void> {
+    await Promise.all(keys.map((key) => {
+      return this._get(key).promise
+    }))
+  }
 }
 
-export function checkImages(...keys: string[]) {
-  keys.forEach((key) => {
-    const result = key in assets.images && typeof assets.images[key].then !== 'function'
-    if (!result) throw new Error(`Asset ${key} has not been loaded.`)
-  })
+export type ImageOptions = Record<string, string>
+
+export class ImageManager extends AssetManager<ImageBitmap> {
+  protected async _resolve(response: Response) {
+    const blob = await response.blob()
+    return await createImageBitmap(blob)
+  }
 }
 
-export interface AssetsOptions {
-  images?: Record<string, string>
+export interface AssetOptions {
+  images?: ImageOptions
 }
 
-export interface AssetsResolved {
-  images: ImagesResolved
-}
+export const images = new ImageManager()
 
-export async function loadAssets(options: AssetsOptions = {}) {
-  await Promise.all([
-    loadImages(options.images),
-  ])
-  return assets as AssetsResolved
+export default new class Assets {
+  public images = images
+
+  async load(options: AssetOptions = {}) {
+    return Promise.all([
+      this.images.load(options.images),
+    ])
+  }
 }

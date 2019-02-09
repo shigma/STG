@@ -1,6 +1,6 @@
-import assets from './assets'
 import config from './config'
 import Barrage from './barrage'
+import Player from './player'
 
 /** hook function for interval tasks of an updater */
 export type IntervalHook<T extends Updater> = (this: T, tick: number, wave: number) => void
@@ -26,18 +26,11 @@ interface UpdaterProperties {
 
 /** general updating object */
 export default class Updater {
-  /** @static maximum number of scheduled tasks */
-  static scheduleLimit = 256
-
   /** @private updater properties */
   private __updater__: UpdaterProperties
   /** @private mounted hook */
   public _mounted?(): void
 
-  /** @public public assets */
-  public readonly $assets = assets
-  /** @public global configurations */
-  public readonly $config = config
   /** @public rendering context */
   public $context: CanvasRenderingContext2D
   /** @public the current tick number */
@@ -46,6 +39,8 @@ export default class Updater {
   public $parent: any
   /** @public barrage */
   public $barrage: Barrage
+  /** @public player */
+  public $player: Player
 
   constructor() {
     Object.defineProperty(this, '__updater__', {
@@ -95,7 +90,7 @@ export default class Updater {
     })
 
     // check the amount of scheduled tasks for performance
-    if (updater.tasks.length > Updater.scheduleLimit) {
+    if (updater.tasks.length > config.scheduleLimit) {
       throw new Error(`The amount of scheduled tasks (${updater.tasks.length}) is beyond the limit!`)
     }
   }

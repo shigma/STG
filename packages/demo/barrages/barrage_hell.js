@@ -24,7 +24,7 @@ module.exports = {
           display: ellipse ? 'ellipse' : 'small',
           state: {
             color,
-            rho: 40,
+            rho: ellipse ? 60 : 40,
             face: index / count * 2,
           },
           mutate() {

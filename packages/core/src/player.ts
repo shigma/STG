@@ -1,7 +1,9 @@
 import { TaskHook, MountHook } from './updater'
-import { AssetsOptions } from './assets'
+import CanvasPoint, { Emitter } from './point'
+import { AssetOptions } from './assets'
 import { Point } from './coordinate'
-import CanvasPoint from './point'
+import { math } from '@stg/utils'
+import config from './config'
 import Field from './field'
 
 type BoolInt = 0 | 1
@@ -23,7 +25,7 @@ interface KeyState extends Record<string, BoolInt> {
 }
 
 export interface PlayerOptions {
-  assets?: AssetsOptions
+  assets?: AssetOptions
   control?: ControlMode
   state?: PlayerState
   mounted?: MountHook<Player>
@@ -33,6 +35,8 @@ export interface PlayerOptions {
 interface PlayerState {
   /** judge radius */
   judgeRadius?: number
+  /** graze radius */
+  grazeRadius?: number
   /** life count */
   lifeCount?: number
   /** bomb count */
@@ -45,14 +49,20 @@ interface PlayerState {
   [key: string]: any
 }
 
-export default class Player extends CanvasPoint implements PlayerState {
+export default class Player extends CanvasPoint implements PlayerState, Emitter {
   public lifeCount: number
   public bombCount: number
   public highSpeed: number
   public lowSpeed: number
+  public grazeRadius: number
+  public $direction: number
+  public $directionTick: number
 
   /** @public the control of the player */
   public readonly control: ControlMode
+
+  /** @public parent field */
+  public $parent: Field
 
   /** @private listeners */
   private _listeners: Listener[]
@@ -61,15 +71,13 @@ export default class Player extends CanvasPoint implements PlayerState {
   /** @private keyboard state */
   private _keyState: KeyState
 
-  /** @public parent field */
-  public $parent: Field
-
   constructor(options: PlayerOptions = {}) {
     options.state = {
       color: 'red',
       radius: 4,
       lifeCount: 8,
       judgeRadius: 3,
+      grazeRadius: 24,
       bombCount: 0,
       highSpeed: 4.5,
       lowSpeed: 2,
@@ -77,6 +85,8 @@ export default class Player extends CanvasPoint implements PlayerState {
     }
     super(options)
     this._listeners = []
+    this.$directionTick = 0
+    this.face = -config.angleUnit / math.twoPI
     this.control = options.control === undefined ? 'keyboard' : options.control
   }
 
@@ -131,6 +141,10 @@ export default class Player extends CanvasPoint implements PlayerState {
   private _mutate(tick: number) {
     this._mutateHook.forEach(hook => hook.call(this, tick))
 
+    // store last position
+    const lastX = this.x
+
+    // update position
     if (this.control === 'mouse') {
       this.x = this._mouseState.x
       this.y = this._mouseState.y
@@ -145,6 +159,16 @@ export default class Player extends CanvasPoint implements PlayerState {
       this.y -= v * this._keyState.ArrowUp
     }
 
+    // update direction
+    const direction = Math.sign(this.x - lastX)
+    if (direction === this.$direction) {
+      this.$directionTick += 1
+    } else {
+      this.$directionTick = 0
+      this.$direction = direction
+    }
+
+    // restrict postion to moving scope
     const { left, right, bottom, top } = this.$parent.movingScope
     if (this.x < left) this.x = left
     if (this.y < top) this.y = top
@@ -152,7 +176,13 @@ export default class Player extends CanvasPoint implements PlayerState {
     if (this.y > bottom) this.y = bottom
   }
 
-  render() {
+  renderBelow() {
+    if (!this.$context || typeof this._displayHook !== 'function') return
+    this._displayHook.call(this, this.$displayTick)
+  }
+
+  renderAbove() {
+    // draw judge point
     const gradient = this.getGradient('white', this.radius / 2)
     this.fillCircle(gradient)
   }

@@ -1,16 +1,18 @@
 import * as STG from '.'
 
-export type PluginFunction = (stg: typeof STG) => void
+export type STG = typeof STG
 
-export type STGPlugin = PluginFunction | {
-  install: PluginFunction
+export type PluginFunction<T = any> = (stg: STG, options?: T) => any
+
+export type Plugin<T = any> = PluginFunction<T> | {
+  install: PluginFunction<T>
 }
 
-export function use(plugin: STGPlugin) {
+export function use<T>(plugin: Plugin<T>, options?: T) {
   if (typeof plugin === 'function') {
-    plugin(STG)
+    return plugin(STG, options)
   } else if (typeof plugin.install === 'function') {
-    plugin.install(STG)
+    return plugin.install(STG, options)
   } else {
     throw new Error(`Not a valid plugin.`)
   }

@@ -1,4 +1,4 @@
-import { BulletTemplate } from '@stg/core'
+import { PointTemplate } from '@stg/core'
 
 export default {
   applied() {
@@ -11,4 +11,4 @@ export default {
   display() {
     this.fillEllipse()
   },
-} as BulletTemplate
+} as PointTemplate

@@ -1,6 +1,7 @@
 import Field from './field'
 import Player from './player'
-import { AssetsOptions } from './assets'
+import config from './config'
+import { AssetOptions } from './assets'
 import Bullet, { BulletOptions } from './bullet'
 import CanvasPoint, { PointOptions } from './point'
 import Updater, { MountHook, TaskHook } from './updater'
@@ -8,7 +9,7 @@ import Updater, { MountHook, TaskHook } from './updater'
 type MaybeFunction<T> = T | (() => T)
 
 export interface BarrageOptions<T extends Barrage = Barrage> {
-  assets?: AssetsOptions
+  assets?: AssetOptions
   state?: MaybeFunction<Record<string, any>>
   reference?: Record<string, PointOptions>
   mounted?: MountHook<T & Record<string, any>>
@@ -16,18 +17,15 @@ export interface BarrageOptions<T extends Barrage = Barrage> {
   methods?: Record<string, (this: T & Record<string, any>, ...args: any[]) => any>
 }
 
-export type BulletEmitter = ((this: Barrage, index: number) => BulletOptions) | BulletOptions
+export type EmitBulletsOptions = ((this: Barrage, index: number) => BulletOptions) | BulletOptions
 
-export interface BarrageReferences extends Record<string, CanvasPoint<any>> {
+export interface BarrageReferences extends Record<string, CanvasPoint> {
   player?: Player
-  source?: CanvasPoint<any>
+  source?: CanvasPoint
   origin?: CanvasPoint
 }
 
 export default class Barrage extends Updater {
-  /** @static max bullet count */
-  static maxBulletCount = 4096
-
   /** @private store the last created point index */
   private _pointCounter = 0
   /** @protected mounted hook */
@@ -70,7 +68,7 @@ export default class Barrage extends Updater {
         if (ref.$parent === this) ref.update()
       }
       this.$bullets.forEach(bullet => bullet.update())
-      if (this.$bullets.length > Barrage.maxBulletCount) {
+      if (this.$bullets.length > config.maxBulletCount) {
         throw new Error(`The amount of bullets ${this.$bullets.length} is beyond the limit!`)
       }
     })
@@ -107,14 +105,14 @@ export default class Barrage extends Updater {
   }
 
   /** emit bullets from the barrage */
-  emitBullets(end: number, bullet: BulletEmitter): void
-  emitBullets(start: number, end: number, bullet: BulletEmitter): void
-  emitBullets(start: number, end: number, step: number, bullet: BulletEmitter): void
+  emitBullets(end: number, bullet: EmitBulletsOptions): void
+  emitBullets(start: number, end: number, bullet: EmitBulletsOptions): void
+  emitBullets(start: number, end: number, step: number, bullet: EmitBulletsOptions): void
   emitBullets(...args: [number, any, any?, any?]): void {
     const start: number = args.length > 2 ? args[0] : 0
     const end: number = args.length > 1 ? args.length > 2 ? args[1] : args[0] : 1
     const step: number = args.length > 3 ? args[2] : 1
-    const emitter: BulletEmitter = args[args.length - 1]
+    const emitter: EmitBulletsOptions = args[args.length - 1]
     for (let i = start; i < end; i += step) {
       const options = typeof emitter === 'function' ? emitter.call(this, i) : emitter
       const bullet = new Bullet(options)

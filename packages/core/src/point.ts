@@ -1,7 +1,8 @@
 import config from './config'
+import builtin from './template'
 import { math } from '@stg/utils'
-import { checkImages } from './assets'
-import { BulletEmitter } from './barrage'
+import { images } from './assets'
+import { EmitBulletsOptions } from './barrage'
 import Coordinate, { Point } from './coordinate'
 import Updater, { TaskHook, MountHook } from './updater'
 
@@ -14,23 +15,39 @@ export interface ImageTransform {
   yOffset?: number
 }
 
-export interface ImageSelector {
+export interface ImagePosition {
   xStart: number
   yStart: number
   xEnd: number
   yEnd: number
 }
 
-export interface PointOptions<S = never, T extends CanvasPoint<S> = CanvasPoint<S>> {
+export interface PointOptions<T extends CanvasPoint = CanvasPoint> {
   state?: MaybeFunction<Record<string, any>>
   mounted?: MountHook<T & Record<string, any>>
   mutate?: TaskHook<T & Record<string, any>>
-  display?: S | TaskHook<T & Record<string, any>>
+  display?: string | TaskHook<T & Record<string, any>>
   methods?: Record<string, (this: T & Record<string, any>, ...args: any[]) => any>
 }
 
+export interface Emitter extends CanvasPoint {
+  /**
+   * moving direction
+   * - 0: static
+   * - -1: leftward
+   * - +1: rightward
+   */
+  $direction?: number
+  /** number of ticks since change to current direction */
+  $directionTick?: number
+}
+
 /** a general point in the canvas */
-export default class CanvasPoint<S = never> extends Updater {
+export default class CanvasPoint extends Updater {
+  public innerColor?: any
+  public radiusX?: number
+  public radiusY?: number
+
   /** @protected point position */
   protected _point: Point = { x: 0, y: 0, face: 0 }
   /** @protected current coordinate */
@@ -48,10 +65,11 @@ export default class CanvasPoint<S = never> extends Updater {
   public radius?: number
   /** @public the color of the point */
   public color?: any
+  /** @public number of ticks since change to current display */
+  public $displayTick?: number
 
-  constructor(options: PointOptions<S> = {}) {
+  constructor(options: PointOptions = {}) {
     super()
-    this._displayHook = options.display as TaskHook<this>
     this._mountedHook = options.mounted ? [options.mounted] : []
     this._mutateHook = options.mutate ? [options.mutate] : []
     Object.assign(this, options.methods)
@@ -60,6 +78,9 @@ export default class CanvasPoint<S = never> extends Updater {
       : options.state
     Object.assign(this, state)
     if (!this.color) this.color = config.defaultColor
+
+    // set initial display
+    this.$display = options.display
   }
 
   public get x() {
@@ -89,14 +110,38 @@ export default class CanvasPoint<S = never> extends Updater {
     this._coordinate = null
   }
 
+  get $player() {
+    return this.$barrage.$refs.player
+  }
+
+  get $display() {
+    return this._displayHook
+  }
+
+  set $display(value: string | TaskHook<this>) {
+    if (typeof value === 'string') {
+      const wrapper = builtin.display.resolve(value, this)
+      if (wrapper.applied) wrapper.applied.call(this)
+      this._displayHook = wrapper.display
+    } else {
+      this._displayHook = value
+    }
+    this.$displayTick = 0
+  }
+
+  drawTemplate(key: string) {
+    builtin.display.resolve(key, this).display.call(this)
+  }
+
   _mounted() {
+    this._mutateHook.forEach(hook => this.setTask(hook, 0))
+    this.setTask(() => this.$displayTick += 1, 0)
     this._mountedHook.forEach(hook => hook.call(this))
-    this._mutateHook.forEach(hook => this.setTask(hook))
   }
 
   render() {
     if (!this.$context || typeof this._displayHook !== 'function') return
-    this._displayHook.call(this, this.$tick)
+    this._displayHook.call(this, this.$displayTick)
   }
 
   get $coord(): Coordinate {
@@ -108,9 +153,9 @@ export default class CanvasPoint<S = never> extends Updater {
   }
 
   /** emit bullets from the barrage */
-  emitBullets(end: number, bullet: BulletEmitter): void
-  emitBullets(start: number, end: number, bullet: BulletEmitter): void
-  emitBullets(start: number, end: number, step: number, bullet: BulletEmitter): void
+  emitBullets(end: number, bullet: EmitBulletsOptions): void
+  emitBullets(start: number, end: number, bullet: EmitBulletsOptions): void
+  emitBullets(start: number, end: number, step: number, bullet: EmitBulletsOptions): void
   emitBullets(...args: [number, any, any?, any?]): void {
     // set temporary source
     this.$barrage.$refs.source = this
@@ -119,10 +164,9 @@ export default class CanvasPoint<S = never> extends Updater {
   }
 
   /** draw image from image assets */
-  drawImage(id: string, transform: ImageTransform = {}, selector?: ImageSelector) {
-    checkImages(id)
+  drawImage(id: string, transform: ImageTransform = {}, selector?: ImagePosition) {
     const { x, y, face } = this.$coord
-    const image = this.$assets.images[id]
+    const [ image ] = images.get(id)
     const { xStart, xEnd, yStart, yEnd } = selector || {
       xStart: 0,
       yStart: 0,
@@ -159,9 +203,9 @@ export default class CanvasPoint<S = never> extends Updater {
 
   fillEllipse(
     stroke = this.color,
-    fill = this['innerColor'],
-    radiusX = this['radiusX'],
-    radiusY = this['radiusY'],
+    fill = this.innerColor,
+    radiusX = this.radiusX,
+    radiusY = this.radiusY,
     rotation = this.face,
   ): void {
     const { x, y } = this.$coord

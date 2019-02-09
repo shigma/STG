@@ -2,34 +2,26 @@ import config from './config'
 import builtin from './template'
 import Barrage from './barrage'
 import { math } from '@stg/utils'
-import { BulletJudge } from './builtin/judge'
-import { TaskHook, MountHook } from './updater'
+import { BulletFieldHook } from './builtin/field'
+import { BulletJudgeHook } from './builtin/judge'
 import Coordinate, { Point } from './coordinate'
 import CanvasPoint, { PointOptions } from './point'
 
-type BlurType = 'small' | TaskHook<Bullet, number>
-type JudgeType = 'square' | 'ortho' | 'tangent' | BulletJudge
-type FieldType = 'viewport' | 'distant' | 'timing' | TaskHook<Bullet, boolean>
+type JudgeType = 'square' | 'ortho' | 'tangent' | BulletJudgeHook
+type FieldType = 'viewport' | 'distant' | 'timing' | BulletFieldHook
 
 interface BulletPoint {
   /** judge type (default: `ortho`) */
   judgeType?: JudgeType
   /** field type (default: `viewport`) */
   fieldType?: FieldType
-  /** blur function */
-  blur?: BlurType
   /** origin point */
   origin?: string | Point
   /** display layer */
   layer?: number
 }
 
-export interface BulletTemplate {
-  applied?: MountHook<Bullet & Record<string, any>>
-  display?: TaskHook<Bullet & Record<string, any>>
-}
-
-export interface BulletOptions extends PointOptions<string, Bullet>, BulletPoint {}
+export interface BulletOptions extends PointOptions<Bullet>, BulletPoint {}
 
 export interface BulletReferences {
   [key: string]: Coordinate
@@ -38,11 +30,17 @@ export interface BulletReferences {
   source?: Coordinate
 }
 
-export default class Bullet extends CanvasPoint<string> implements BulletPoint {
+export default class Bullet extends CanvasPoint implements Point, BulletPoint {
   public layer: number
   public judgeType: JudgeType
   public fieldType: FieldType
-  public blur?: TaskHook<Bullet, number>
+
+  public rho?: number
+  public theta?: number
+  /** attribute from field:timing */
+  public lifeSpan?: number
+  /** attribute from field:viewport */
+  public fieldBorder?: number
 
   /** @public grazing */
   public grazing?: boolean
@@ -57,92 +55,71 @@ export default class Bullet extends CanvasPoint<string> implements BulletPoint {
   public $parent: Barrage
 
   constructor(options: BulletOptions = {}) {
-    // temporarily store the display
-    const display = options.display
-    delete options.display
-
     super(options)
     this.$refs = {}
 
     // set bullet layer
     this.layer = options.layer === undefined ? 0 : options.layer
-    this.blur = typeof options.blur === 'string' ? builtin.blurs[options.blur] : options.blur
 
     // set judge hook and field hook
     this.judgeType = options.judgeType === undefined ? 'ortho' : options.judgeType
     this.fieldType = options.fieldType === undefined ? 'viewport' : options.fieldType
     this.setTask((tick) => {
-      const judge = this._resolveHook(this.judgeType, builtin.judges)
-      const player = this.$barrage.$refs.player
-      if (judge && player) {
-        if (judge.call(this, player)) {
+      const judge = builtin.judges.resolve(this.judgeType)
+      if (judge && this.$player) {
+        if (judge.call(this, this.$player)) {
           this.hitPlayer()
         } else {
-          this.grazing = judge.call(this, player, config.grazeRadius)
+          if (judge.call(this, this.$player, this.$player.grazeRadius)) {
+            this.grazing = true
+          } else {
+            this.grazing = false
+          }
         }
       }
 
-      const field = this._resolveHook(this.fieldType, builtin.fields)
+      const field = builtin.fields.resolve(this.fieldType)
       if (field && field.call(this, tick)) {
         this.destroy()
       }
     })
 
-    // set originprivate point
+    // set origin point
     const origin = options.origin || 'origin'
-    if (typeof origin !== 'string') {
-      this.$origin = origin
-    } else {
-      this._mountedHook.unshift(() => {
-        if (!this.$refs[origin]) {
-          if (config.showWarning) {
-            console.warn(`Warning: reference point ${origin} is not found.`)
-          }
-          this.$origin = { x: 0, y: 0, face: 0 }
-        } else {
-          this.$origin = this.$refs[origin]
-        }
-      })
-    }
-
-    // set initial display
-    this.display = display
+    this._mountedHook.unshift(() => {
+      this.$origin = this._resolvePoint(origin)
+    })
   }
 
   render() {
     if (!this.$context || typeof this._displayHook !== 'function') return
     let filter = ''
-    if (typeof this.blur === 'function') {
-      const blur = this.blur(this.$tick)
-      if (blur > 0) filter += `blur(${blur}px)`
-    }
-    if (this.grazing) filter += 'sepia(0.8) contrast(1.5) hue-rotate(-0.5rad)'
+    if (this.grazing) filter += config.grazeFilter
     this.$context.filter = filter || 'none'
-    this._displayHook.call(this, this.$tick)
+    this._displayHook.call(this, this.$displayTick)
     this.$context.filter = 'none'
   }
 
-  set display(value: string | TaskHook<this>) {
-    if (typeof value === 'string') {
-      const wrapper = (builtin.templates[value] || []).find(wrapper => wrapper.test(this))
-      if (!wrapper) throw new Error(`A template matching ${value} was not found.`)
-      if (wrapper.applied) wrapper.applied.call(this)
-      this._displayHook = wrapper.display
-    } else {
-      this._displayHook = value
-    }
+  setOrigin(point: string | Point) {
+    point = this._resolvePoint(point)
+    const coord = Coordinate.from(point).locate(this.$coord)
+    this.x = coord.x
+    this.y = coord.y
+    this.face = coord.face
+    this.$origin = point
+    return coord
   }
 
-  get display() {
-    return this._displayHook
-  }
-
-  private _resolveHook<T>(hook: string | T, target: Record<string, T>) {
-    if (typeof hook !== 'string') return hook
-    if (!(hook in target)) {
-      throw new Error(`Plugin ${hook} was not found.`)
+  private _resolvePoint(point: string | Point) {
+    if (typeof point !== 'string') {
+      return point
+    } else if (!this.$refs[point]) {
+      if (config.showWarning) {
+        console.warn(`Warning: reference point ${point} is not found.`)
+      }
+      return { x: 0, y: 0, face: 0 }
     } else {
-      return target[hook]
+      return this.$refs[point]
     }
   }
 
@@ -154,7 +131,7 @@ export default class Bullet extends CanvasPoint<string> implements BulletPoint {
     return this._coordinate
   }
 
-  polarLocate(rho = this['rho'], theta = this['theta']) {
+  polarLocate(rho = this.rho, theta = this.theta) {
     this.x = rho * math.cos(config.angleUnit * theta)
     this.y = rho * math.sin(config.angleUnit * theta)
   }
@@ -172,5 +149,3 @@ export default class Bullet extends CanvasPoint<string> implements BulletPoint {
     })
   }
 }
-
-Object.assign(Bullet, builtin)

@@ -24,7 +24,7 @@ module.exports = {
       },
       methods: {
         updateFacing(tick, wave = 0) {
-          this.face = this.$parent.$refs.player.$coord.locate(this).theta + 1
+          this.face = this.$player.$coord.locate(this).theta + 0.5
           this.emitBullets(32, (index) => ({
             display: 'medium',
             state: {

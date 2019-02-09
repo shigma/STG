@@ -1,4 +1,4 @@
-import { loadAssets } from './assets'
+import assets from './assets'
 import Looping, { LoopingOptions, LoopingStats } from './looping'
 import Barrage, { BarrageOptions } from './barrage'
 import Player, { PlayerOptions, ControlMode } from './player'
@@ -114,7 +114,7 @@ export default class Field extends Looping {
   async setPlayer(options: PlayerOptions) {
     if (!options) return
     this.removePlayer()
-    await loadAssets(options.assets)
+    await assets.load(options.assets)
     this.player = new Player({
       control: this.control,
       ...options,
@@ -134,7 +134,7 @@ export default class Field extends Looping {
     if (!options) return
     this.pause()
     this.clearScreen()
-    await loadAssets(options.assets)
+    await assets.load(options.assets)
     this.barrage = new Barrage(options)
     if (this.player) this.barrage.$refs.player = this.player
     this.barrage.initialize(this.context, this)
@@ -158,8 +158,9 @@ export default class Field extends Looping {
 
   render() {
     this.clearScreen()
+    if (this.player) this.player.renderBelow()
     if (this.barrage) this.barrage.render()
-    if (this.player) this.player.render()
+    if (this.player) this.player.renderAbove()
     this.showTitle()
   }
 

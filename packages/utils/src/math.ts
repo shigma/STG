@@ -18,10 +18,10 @@ const cachedMethods = [
 Object.defineProperty(math, 'twoPI', { value: Math.PI * 2 })
 Object.defineProperty(math, 'halfPI', { value: Math.PI / 2 })
 
-Object.getOwnPropertyNames(Math).forEach((key) => {
+Object.getOwnPropertyNames(Math).forEach((key: keyof Math) => {
   Object.defineProperty(math, key, {
     value: cachedMethods.includes(key)
-      ? memorize(Math[key])
+      ? memorize(Math[key] as (...args: any[]) => any)
       : Math[key]
   })
 })

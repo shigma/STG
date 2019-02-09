@@ -1,4 +1,4 @@
-import { BulletTemplate } from '@stg/core'
+import { PointTemplate } from '@stg/core'
 
 export default {
   applied() {
@@ -11,4 +11,4 @@ export default {
   display() {
     this.fillCircle(this.getGradient(this.color, this.innerR, this.bdColor))
   },
-} as BulletTemplate
+} as PointTemplate

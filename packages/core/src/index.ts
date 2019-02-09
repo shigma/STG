@@ -1,6 +1,6 @@
 import assets from './assets'
-import builtin from './template'
 import config from './config'
+import template from './template'
 import Barrage from './barrage'
 import Bullet from './bullet'
 import Coordinate from './coordinate'
@@ -24,8 +24,8 @@ export * from './updater'
 
 export {
   assets,
-  builtin,
   config,
+  template,
   Barrage,
   Bullet,
   CanvasPoint,

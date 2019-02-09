@@ -1,57 +1,105 @@
+import config from './config'
 import { parse } from 'querystring'
-import { checkImages } from './assets'
-import { BulletTemplate } from './bullet'
-import builtinBlurs from './builtin/blur'
 import builtinFields from './builtin/field'
 import builtinJudges from './builtin/judge'
+import { MountHook, TaskHook } from './updater'
+import CanvasPoint, { Emitter, ImageTransform } from './point'
 
-export interface BulletTemplateWrapper extends BulletTemplate {
+class TemplateManager<T> {
+  private _data: Record<string, T> = {}
+
+  constructor(init: Record<string, T> = {}) {
+    this.define(init)
+  }
+
+  define(options: Record<string, T>): void
+  define(key: string, value: T): void
+  define(...args: [any, any?]) {
+    if (typeof args[0] === 'string') {
+      this._data[args[0]] = args[1]
+    } else {
+      Object.assign(this._data, args[0])
+    }
+  }
+
+  resolve(hook: string | T) {
+    if (typeof hook !== 'string') return hook
+    const result = this._data[hook]
+    if (!result) throw new Error(`Template ${hook} was not found.`)
+    return result
+  }
+}
+
+export interface PointTemplate {
+  applied?: MountHook<CanvasPoint & Record<string, any>>
+  display?: TaskHook<CanvasPoint & Record<string, any>>
+}
+
+export interface PointTemplateWrapper extends PointTemplate {
   weight: number
   query: string
-  test(target: object): boolean
+  test(target: Record<string, any>): boolean
 }
 
-/** built-in templates */
-const templates: Record<string, BulletTemplateWrapper[]> = {}
-/** built-in fields */
-const fields = builtinFields
-/** built-in judges */
-const judges = builtinJudges
-/** built-in blur effects */
-const blurs = builtinBlurs
+export type PositionArray = [number, number, number, number]
 
-export default {
-  templates,
-  fields,
-  judges,
-  blurs,
+export interface PositionObject {
+  interval?: number
+  data: PositionArray[]
 }
 
-/** define new bullet templates */
-export function defineTemplate(templates: Record<string, BulletTemplate>): void
-export function defineTemplate(name: string, options: BulletTemplate): void
-export function defineTemplate(...args: [any, any?]) {
-  if (typeof args[0] === 'string') {
+export interface BulletAsset {
+  judgeRadius: number
+  spinning?: boolean
+  fogEffect?: string
+  transform?: ImageTransform
+  position: PositionArray | PositionObject
+}
+
+export type BulletAssetMap = Record<string, BulletAsset>
+
+export interface EmitterAsset {
+  transform?: ImageTransform
+  interval?: number
+  static: PositionArray[]
+  leftward: PositionArray[]
+  rightward: PositionArray[]
+}
+
+export type EmitterAssetMap = Record<string, EmitterAsset>
+
+export class DisplayManager {
+  private _data: Record<string, PointTemplateWrapper[]> = {}
+
+  define(options: Record<string, PointTemplate>): void
+  define(key: string, value: PointTemplate): void
+  define(...args: [any, any?]) {
+    if (typeof args[0] !== 'string') {
+      for (const key in args[0]) {
+        this.define(key, args[0][key])
+      }
+      return
+    }
     const match = /^([\w_$]+)(?:\?(.+))?$/.exec(args[0])
     if (!match) throw new Error(`Invalid form: "${args[0]}".`)
     const name = match[1]
     const query = args[0]
     const attrs = parse(match[2])
     const weight = Object.keys(attrs).length
-    templates[name] = templates[name] || []
+    this._data[name] = this._data[name] || []
     let index = 0, insert = null
-    for (; index < templates[name].length; index += 1) {
-      const template = templates[name][index]
+    for (; index < this._data[name].length; index += 1) {
+      const template = this._data[name][index]
       if (template.query === query) break
       if (template.weight <= weight) {
         if (insert === null) insert = index
         if (template.weight < weight) break
       }
     }
-    if (templates[name][index] && templates[name][index].query === query) {
-      Object.assign(templates[name][index], args[1])
+    if (this._data[name][index] && this._data[name][index].query === query) {
+      Object.assign(this._data[name][index], args[1])
     } else {
-      templates[name].splice(insert === null ? Infinity : insert, 0, {
+      this._data[name].splice(insert === null ? Infinity : insert, 0, {
         query,
         weight,
         ...args[1],
@@ -63,51 +111,93 @@ export function defineTemplate(...args: [any, any?]) {
         },
       })
     }
-  } else {
-    for (const key in args[0]) {
-      defineTemplate(key, args[0][key])
+  }
+
+  resolve(key: string | PointTemplate, source: CanvasPoint): PointTemplate {
+    if (typeof key !== 'string') return key
+    const wrapper = (this._data[key] || []).find(wrapper => wrapper.test(source))
+    if (!wrapper) throw new Error(`A template matching ${key} was not found.`)
+    return wrapper
+  }
+
+  buildEmitterFromImage(id: string, map: EmitterAssetMap) {
+    for (const key in map) {
+      let {
+        leftward,
+        rightward,
+        static: static$,
+        transform = {},
+        interval = config.imageUpdateInterval,
+      } = map[key]
+
+      this.define(key, {
+        display(this: Emitter) {
+          const data = this.$direction === 0 ? static$
+            : this.$direction === 1 ? rightward
+            : leftward
+          let index = Math.floor(this.$directionTick / interval)
+          if (this.$direction) {
+            if (index >= data.length) index = data.length - 1
+          } else {
+            index %= data.length
+          }
+          const [ xStart, yStart, xEnd, yEnd ] = data[index]
+          this.drawImage(id, transform, { xStart, yStart, xEnd, yEnd })
+        },
+      })
+    }
+  }
+
+  buildBulletFromImage(id: string, map: BulletAssetMap) {
+    for (const key in map) {
+      let {
+        position,
+        judgeRadius,
+        spinning,
+        fogEffect,
+        transform = {},
+      } = map[key]
+      if (Array.isArray(position)) {
+        position = { data: [position] }
+      }
+
+      const { interval = 1, data } = position
+      transform.rotate = spinning ? undefined : 0
+
+      this.define(key, {
+        applied() {
+          if (typeof judgeRadius === 'number') this.judgeRadius = judgeRadius
+        },
+        display(tick = 0) {
+          if (fogEffect && tick <= config.fogEffectTimeout) {
+            this.drawTemplate(fogEffect)
+          } else {
+            const index = Math.floor(tick / interval) % data.length
+            const [ xStart, yStart, xEnd, yEnd ] = data[index]
+            this.drawImage(id, transform, { xStart, yStart, xEnd, yEnd })
+          }
+        },
+      })
     }
   }
 }
 
-export type TransformArray = [boolean, number?, number?, number?]
-export type SelectorArray = [number, number, number, number]
+const fields = new TemplateManager(builtinFields)
+const judges = new TemplateManager(builtinJudges)
+const display = new DisplayManager()
 
-export interface SelectorObject {
-  interval?: number
-  data: SelectorArray[]
+export default { fields, judges, display }
+
+export function buildBullet(id: string, map: BulletAssetMap) {
+  display.buildBulletFromImage(id, map)
 }
 
-export interface BulletAsset {
-  judgeRadius: number
-  transform?: TransformArray
-  selector: SelectorArray | SelectorObject
+export function buildEmitter(id: string, map: EmitterAssetMap) {
+  display.buildEmitterFromImage(id, map)
 }
 
-export type BulletAssetMap = Record<string, BulletAsset>
-
-/** build bullet templates from image assets */
-export function buildFromImages(id: string, map: BulletAssetMap) {
-  checkImages(id)
-  for (const name in map) {
-    let {
-      selector,
-      judgeRadius,
-      transform: [rotSym = false, scale = 1, xOffset = 0, yOffset = 0] = [],
-    } = map[name]
-    if (Array.isArray(selector)) selector = { data: [selector] }
-    const interval = selector.interval || 1
-    const dataset = selector.data
-    const rotate = rotSym ? undefined : 0
-
-    defineTemplate(name, {
-      applied() {
-        this.judgeRadius = judgeRadius
-      },
-      display(tick) {
-        const [ xStart, yStart, xEnd, yEnd ] = dataset[Math.floor(tick / interval) % dataset.length]
-        this.drawImage(id, { rotate, scale, xOffset, yOffset }, { xStart, yStart, xEnd, yEnd })
-      },
-    })
-  }
+export function defineTemplate(options: Record<string, PointTemplate>): void
+export function defineTemplate(key: string, value: PointTemplate): void
+export function defineTemplate(...args: [any, any?]) {
+  display.define(...args)
 }
