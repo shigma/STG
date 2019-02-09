@@ -78,6 +78,10 @@ export interface AssetOptions {
 
 export const images = new ImageManager()
 
+export async function loadImages(options: ImageOptions = {}) {
+  return images.load(options)
+}
+
 export default new class Assets {
   public images = images
 

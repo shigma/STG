@@ -1,6 +1,6 @@
 {
   "name": "web-stg",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "main": "dist/stg.common.js",
   "typings": "index.d.ts",
   "author": {
@@ -17,9 +17,9 @@
     "sass": "node-sass styles/index.scss dist/stg.min.css --output-style=compressed --source-map=true"
   },
   "dependencies": {
-    "@stg/bullets": "^0.3.0",
-    "@stg/core": "^0.3.1",
-    "@stg/utils": "^0.2.1"
+    "@stg/core": "^0.4.0",
+    "@stg/touhou": "^0.4.0",
+    "@stg/utils": "^0.2.2"
   },
   "devDependencies": {
     "clean-webpack-plugin": "^1.0.1",

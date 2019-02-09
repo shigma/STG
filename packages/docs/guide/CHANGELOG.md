@@ -2,9 +2,29 @@
 
 ## v0.4
 
+### 新特性
+
+- **core:** 实现了擦弹效果:
+  - PlayerOptions 新增 `grazeRadius` 属性, 用于控制擦弹判定半径.
+  - config 新增 `grazeFilter` 属性, 用于控制擦弹对应的滤镜效果.
+- **core:** 重新实现了弹雾效果:
+  - BulletAsset 新增 `fogEffect` 属性, 用于制定弹雾效果对应的弹型.
+  - config 新增 `fogEffectTimeout` 属性, 用于控制子弹生成时弹雾效果的持续帧数.
+- **core:** 实现了自机动画:
+  - 通过 `stg.buildEmitter` 方法可以从文件生成一个自机 (敌机) 模板.
+  - 将 PlayerOptions 的 `display` 钩子设定为对应的模板名称即可实现自机动画.
+- **core:** PointOptions 和 PointTemplate 的 `display` 钩子新增了参数 `displayTick`, 表示该钩子函数从被绑定到调用时经过的逻辑帧数.
+- **touhou:** 增加了官方插件 `touhou.th15`, 使用 `stg.use` 函数并提供资源即可加载东方绀珠传的部分子弹和自机数据.
+
 ### 重大变化
 
+- **core:** 重写了 template 模块. 现在的 fieldType, judgeType 以及 display 钩子都可以通过 template 模块进行控制了. 新增了三个全局函数 `defineTemplate`, `buildBullet` 和 `buildEmitter`.
 - **touhou:** @stg/bullets 包更名为 @stg/touhou, 用来维护更多东方 Project 相关的数据.
+
+### 修复与其他
+
+- **core:** 优化了资源的加载, 防止了重复加载的行为.
+- **core:** `scheduleLimit` 和 `maxBulletCount` 被交由 config 进行处理.
 
 ## v0.3.2
 

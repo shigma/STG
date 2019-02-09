@@ -120,7 +120,7 @@ export class DisplayManager {
     return wrapper
   }
 
-  buildEmitterFromImage(id: string, map: EmitterAssetMap) {
+  buildEmitter(id: string, map: EmitterAssetMap) {
     for (const key in map) {
       let {
         leftward,
@@ -148,7 +148,7 @@ export class DisplayManager {
     }
   }
 
-  buildBulletFromImage(id: string, map: BulletAssetMap) {
+  buildBullet(id: string, map: BulletAssetMap) {
     for (const key in map) {
       let {
         position,
@@ -189,11 +189,11 @@ const display = new DisplayManager()
 export default { fields, judges, display }
 
 export function buildBullet(id: string, map: BulletAssetMap) {
-  display.buildBulletFromImage(id, map)
+  display.buildBullet(id, map)
 }
 
 export function buildEmitter(id: string, map: EmitterAssetMap) {
-  display.buildEmitterFromImage(id, map)
+  display.buildEmitter(id, map)
 }
 
 export function defineTemplate(options: Record<string, PointTemplate>): void

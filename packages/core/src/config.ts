@@ -13,7 +13,7 @@ export interface Configurations {
 export default {
   angleUnit: Math.PI,
   defaultColor: 'blue',
-  publicPath: '',
+  publicPath: '/',
   showWarning: true,
   scheduleLimit: 256,
   maxBulletCount: 4096,

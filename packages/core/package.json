@@ -1,6 +1,6 @@
 {
   "name": "@stg/core",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
   "author": {
@@ -13,6 +13,9 @@
   ],
   "scripts": {
     "build": "tsc -b"
+  },
+  "dependencies": {
+    "@stg/utils": "^0.2.2"
   },
   "devDependencies": {
     "typescript": "^3.2.4"
