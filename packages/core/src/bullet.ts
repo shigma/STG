@@ -30,6 +30,12 @@ export interface BulletReferences {
   source?: Coordinate
 }
 
+interface BulletGrazing {
+  birth?: number
+  active: boolean
+  end?: boolean
+}
+
 export default class Bullet extends CanvasPoint implements Point, BulletPoint {
   public layer: number
   public judgeType: JudgeType
@@ -37,13 +43,13 @@ export default class Bullet extends CanvasPoint implements Point, BulletPoint {
 
   public rho?: number
   public theta?: number
+
   /** attribute from field:timing */
   public lifeSpan?: number
   /** attribute from field:viewport */
   public fieldBorder?: number
-
-  /** @public grazing */
-  public grazing?: boolean
+  /** @public is grazed by player */
+  public grazing?: BulletGrazing
 
   /** @public buller id */
   public $id: number
@@ -57,6 +63,7 @@ export default class Bullet extends CanvasPoint implements Point, BulletPoint {
   constructor(options: BulletOptions = {}) {
     super(options)
     this.$refs = {}
+    this.grazing = { active: false }
 
     // set bullet layer
     this.layer = options.layer === undefined ? 0 : options.layer
@@ -70,10 +77,19 @@ export default class Bullet extends CanvasPoint implements Point, BulletPoint {
         if (judge.call(this, this.$player)) {
           this.hitPlayer()
         } else {
+          if (this.grazing.end) return
           if (judge.call(this, this.$player, this.$player.grazeRadius)) {
-            this.grazing = true
+            this.grazing.active = true
+            if (!this.grazing.birth) {
+              this.grazing.birth = tick
+              this.$player.grazeCount += 1
+            } else if (tick - this.grazing.birth > config.grazeTimeout) {
+              this.grazing.end = true
+              this.$player.grazeCount += config.grazeBonus
+            }
           } else {
-            this.grazing = false
+            this.grazing.active = false
+            this.grazing.birth = null
           }
         }
       }
@@ -94,7 +110,7 @@ export default class Bullet extends CanvasPoint implements Point, BulletPoint {
   render() {
     if (!this.$context || typeof this._displayHook !== 'function') return
     let filter = ''
-    if (this.grazing) filter += config.grazeFilter
+    if (this.grazing.active) filter += config.grazeFilter
     this.$context.filter = filter || 'none'
     this._displayHook.call(this, this.$displayTick)
     this.$context.filter = 'none'
@@ -137,7 +153,8 @@ export default class Bullet extends CanvasPoint implements Point, BulletPoint {
   }
 
   hitPlayer() {
-    this.$barrage.$refs.player.lifeCount -= 1
+    this.$player.lifeCount -= 1
+    this.$player.deathCount += 1
     this.destroy()
   }
 

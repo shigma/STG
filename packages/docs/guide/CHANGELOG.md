@@ -1,5 +1,31 @@
 # 更新日志
 
+## v0.4.1
+
+### 新特性
+
+- **core:** 实现了擦弹计数器 `player.grazeCount`. 每次擦弹将增加 1 擦弹数. 持续 `config.grazeTimeout` 帧擦弹将奖励 `config.grazeBonus` 擦弹数同时取消该子弹的后续擦弹判定. 中途如果停止擦弹将重置计时器.
+- **core:** point 新增 `spin` 属性, 用于实现自旋. `point.drawImage` 方法将优先使用 `spin` 属性.
+- **core:** point 新增 `$action` 属性, 用于实现敌机的特殊效果.
+- **core:** field.setPlayer 和 field.setBarrage 方法支持传入异步函数作为参数了.
+- **core:** `stg.use` 增加了第三个参数 `once`, 默认为 `true`, 即不会重复安装同一个插件.
+- **utils:** memorize 函数新增可选的第二个参数 `normalizer`, 用于自定义对函数参数的处理.
+- **utils:** 新增了两个配置:
+  - `cacheSize`: 用于设置 math 中进行优化的函数的缓存队列的长度.
+  - `minValue`: 用于设置 math 中部分函数的最小认可值, 小于该值的数将视为 0.
+
+### 重大变化
+
+- **core:** 删除了 field.getStatus 中的 `bulletCount` 属性.
+- **core:** buildEmitter 方法的接口改动, 将能够支持更为复杂的配置.
+- **core:** config 中的 `fogEffectTimeout` 等配置将并入 `config.imageUpdate` 中.
+
+### 修复与其他
+
+- **utils:** 对三角函数的计算进行了进一步优化, 提高了性能.
+- **touhou:** 所有的文件实现了按需分离加载, 可以指定加载内容具体到文件.
+- **touhou:** 插件 th15 增加了对哆来咪·苏伊特的贴图支持, 并使用到了符卡 [梦幻快车] 中.
+
 ## v0.4
 
 ### 新特性

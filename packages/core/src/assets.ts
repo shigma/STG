@@ -34,9 +34,15 @@ abstract class AssetManager<T> {
     }
   }
 
-  async load(options: ImageOptions = {}) {
-    Object.assign(this._map, options)
-    return Promise.all(Object.keys(options).map(key => this._load(options[key])))
+  async load(source: string): Promise<T>
+  async load(options?: ImageOptions): Promise<T[]>
+  async load(arg: any = {}): Promise<any> {
+    if (typeof arg === 'string') {
+      return this._load(arg)
+    } else {
+      Object.assign(this._map, arg)
+      return Promise.all(Object.keys(arg).map(key => this._load(arg[key])))
+    }
   }
 
   private _get(key: string) {
@@ -78,8 +84,10 @@ export interface AssetOptions {
 
 export const images = new ImageManager()
 
-export async function loadImages(options: ImageOptions = {}) {
-  return images.load(options)
+export async function loadImages(source: string): Promise<ImageBitmap>
+export async function loadImages(options?: ImageOptions): Promise<ImageBitmap[]>
+export async function loadImages(arg?: any): Promise<any> {
+  return images.load(arg)
 }
 
 export default new class Assets {

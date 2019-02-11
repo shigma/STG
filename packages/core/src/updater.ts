@@ -53,8 +53,8 @@ export default class Updater {
     })
   }
 
-  /** initialize */
-  initialize(context: CanvasRenderingContext2D, parent: any, barrage?: Barrage): this {
+  /** mount */
+  mount(context: CanvasRenderingContext2D, parent: any, barrage?: Barrage): this {
     this.$context = context
     this.$parent = parent
     this.$barrage = barrage

@@ -1,5 +1,5 @@
-import assets from './assets'
-import Looping, { LoopingOptions, LoopingStats } from './looping'
+import { use } from './plugin'
+import Looping, { LoopingOptions } from './looping'
 import Barrage, { BarrageOptions } from './barrage'
 import Player, { PlayerOptions, ControlMode } from './player'
 
@@ -26,10 +26,6 @@ export interface FieldOptions extends LoopingOptions {
   background?: string
   height?: number
   width?: number
-}
-
-export interface FieldStats extends LoopingStats {
-  bulletCount?: number
 }
 
 interface Rectangle {
@@ -90,13 +86,6 @@ export default class Field extends Looping {
     }
   }
 
-  getStatus() {
-    const stats = super.getStatus.call(this) as FieldStats
-    if (!stats) return
-    stats.bulletCount = this.barrage ? this.barrage.$bullets.length : 0
-    return stats
-  }
-
   setTitleStyle(options: TextStyle = {}) {
     const fontSize = options.fontSize || 24
     this.titleStyle = {
@@ -114,11 +103,13 @@ export default class Field extends Looping {
   async setPlayer(options: PlayerOptions) {
     if (!options) return
     this.removePlayer()
-    await assets.load(options.assets)
+    if (typeof options.before === 'function') {
+      await use(options.before)
+    }
     this.player = new Player({
       control: this.control,
       ...options,
-    }).initialize(this.context, this, this.barrage)
+    }).mount(this.context, this, this.barrage)
     if (this.barrage) this.barrage.$refs.player = this.player
   }
 
@@ -134,10 +125,12 @@ export default class Field extends Looping {
     if (!options) return
     this.pause()
     this.clearScreen()
-    await assets.load(options.assets)
+    if (typeof options.before === 'function') {
+      await use(options.before)
+    }
     this.barrage = new Barrage(options)
     if (this.player) this.barrage.$refs.player = this.player
-    this.barrage.initialize(this.context, this)
+    this.barrage.mount(this.context, this)
   }
 
   clearScreen() {

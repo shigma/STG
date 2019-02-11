@@ -1,4 +1,4 @@
-const { math, random } = require('web-stg')
+const { math, random, touhou } = require('web-stg')
 
 const scheme = [
   'purple',
@@ -14,22 +14,27 @@ const scheme = [
 
 module.exports = {
   title: '梦幻快车',
+  async before(stg) {
+    await stg.use(touhou.th15.doremy_sweet, 'stgenm/doremy_sweet.png')
+  },
   reference: {
     origin: {
       state: {
         x: 240,
         y: 160,
         radius: 20,
+        spin: -0.5,
         color: 'yellow',
       },
+      display: 'doremy_sweet',
       methods: {
         updateFacing(tick, wave = 0) {
-          this.face = this.$player.$coord.locate(this).theta + 0.5
+          this.face = this.$player.$coord.locate(this).theta + 1
           this.emitBullets(32, (index) => ({
             display: 'medium',
             state: {
               rho: 4,
-              color: 'maroon',
+              color: 'red',
             },
             mounted() {
               const theta = math.PI * index / 16
@@ -77,9 +82,6 @@ module.exports = {
         this.x = this.prev.x * (1 - rest) + this.y
         this.x = this.prev.x + (this.next.x - this.prev.x) * scale
         this.y = this.prev.y + (this.next.y - this.prev.y) * scale
-      },
-      display() {
-        this.fillCircle()
       },
     }
   },

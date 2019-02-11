@@ -2,11 +2,10 @@ import config from './config'
 import builtin from './template'
 import { math } from '@stg/utils'
 import { images } from './assets'
+import { Wrapped } from './plugin'
 import { EmitBulletsOptions } from './barrage'
 import Coordinate, { Point } from './coordinate'
 import Updater, { TaskHook, MountHook } from './updater'
-
-type MaybeFunction<T> = T | (() => T)
 
 export interface ImageTransform {
   scale?: number
@@ -23,30 +22,21 @@ export interface ImagePosition {
 }
 
 export interface PointOptions<T extends CanvasPoint = CanvasPoint> {
-  state?: MaybeFunction<Record<string, any>>
+  state?: Wrapped<Record<string, any>>
   mounted?: MountHook<T & Record<string, any>>
   mutate?: TaskHook<T & Record<string, any>>
   display?: string | TaskHook<T & Record<string, any>>
   methods?: Record<string, (this: T & Record<string, any>, ...args: any[]) => any>
 }
 
-export interface Emitter extends CanvasPoint {
-  /**
-   * moving direction
-   * - 0: static
-   * - -1: leftward
-   * - +1: rightward
-   */
-  $direction?: number
-  /** number of ticks since change to current direction */
-  $directionTick?: number
-}
+export type PointDirection = 'static' | 'leftward' | 'rightward'
 
 /** a general point in the canvas */
 export default class CanvasPoint extends Updater {
   public innerColor?: any
   public radiusX?: number
   public radiusY?: number
+  public spin?: number
 
   /** @protected point position */
   protected _point: Point = { x: 0, y: 0, face: 0 }
@@ -67,6 +57,12 @@ export default class CanvasPoint extends Updater {
   public color?: any
   /** @public number of ticks since change to current display */
   public $displayTick?: number
+  /** @public moving direction */
+  public $direction?: PointDirection
+  /** @public current action */
+  public $action?: string
+  /** @public number of ticks since change to current action */
+  public $mappingTick?: number
 
   constructor(options: PointOptions = {}) {
     super()
@@ -81,6 +77,8 @@ export default class CanvasPoint extends Updater {
 
     // set initial display
     this.$display = options.display
+    this.$mappingTick = 0
+    this.$direction = 'static'
   }
 
   public get x() {
@@ -129,14 +127,39 @@ export default class CanvasPoint extends Updater {
     this.$displayTick = 0
   }
 
-  drawTemplate(key: string) {
-    builtin.display.resolve(key, this).display.call(this)
+  drawTemplate(key: string, tick: number = 0) {
+    builtin.display.resolve(key, this).display.call(this, tick)
   }
 
   _mounted() {
     this._mutateHook.forEach(hook => this.setTask(hook, 0))
-    this.setTask(() => this.$displayTick += 1, 0)
     this._mountedHook.forEach(hook => hook.call(this))
+  }
+
+  update() {
+    // update display tick
+    if (this.$tick) this.$displayTick += 1
+
+    // store previous position and status
+    const lastX = this.$coord.x
+    const lastMapping = this.$mapping
+
+    // perform an update cycle
+    super.update()
+
+    // update action
+    const sign = math.sign(this.$coord.x - lastX)
+    this.$direction = sign ? sign > 0 ? 'rightward' : 'leftward' : 'static'
+    const mapping = this.$mapping
+    if (mapping !== lastMapping) {
+      this.$mappingTick = 0
+    } else if (this.$tick) {
+      this.$mappingTick += 1
+    }
+  }
+
+  get $mapping() {
+    return this.$action || this.$direction
   }
 
   render() {
@@ -164,9 +187,11 @@ export default class CanvasPoint extends Updater {
   }
 
   /** draw image from image assets */
-  drawImage(id: string, transform: ImageTransform = {}, selector?: ImagePosition) {
+  drawImage(image: string | ImageBitmap, transform: ImageTransform = {}, selector?: ImagePosition) {
     const { x, y, face } = this.$coord
-    const [ image ] = images.get(id)
+    if (typeof image === 'string') {
+      [ image ] = images.get(image)
+    }
     const { xStart, xEnd, yStart, yEnd } = selector || {
       xStart: 0,
       yStart: 0,
@@ -179,7 +204,7 @@ export default class CanvasPoint extends Updater {
       scale = 1,
       xOffset = 0,
       yOffset = 0,
-      rotate = face,
+      rotate = this.spin === undefined ? face : this.spin,
     } = transform
     const dw = sw * scale
     const dh = sh * scale

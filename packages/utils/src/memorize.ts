@@ -1,11 +1,11 @@
-const CACHE_SIZE = 16384
+import config from './config'
 
 interface CachedData<V> {
   index: number
   value: V
 }
 
-// Normalize function arguments
+// normalize function arguments
 function normalize(args: any[]) {
   let index = args.length - 1
   let id = String(args[index])
@@ -15,7 +15,10 @@ function normalize(args: any[]) {
   return id
 }
 
-export default function memorize<T extends (...args: any[]) => any>(func: T) {
+export default function memorize<T extends (...args: any[]) => any>(
+  func: T,
+  normalizer: (args: any[]) => string = normalize,
+) {
   let base = 1
   let size = 0
   let index = 0
@@ -29,7 +32,7 @@ export default function memorize<T extends (...args: any[]) => any>(func: T) {
   }
 
   return ((...args: any[]) => {
-    const id = normalize(args.slice(0, func.length))
+    const id = normalizer(args.slice(0, func.length))
     const oldData = map[id]
     const newIndex = ++index
     queue[newIndex] = id
@@ -43,7 +46,7 @@ export default function memorize<T extends (...args: any[]) => any>(func: T) {
       const value = func(...args)
       map[id] = { index: newIndex, value }
       size += 1
-      if (size <= CACHE_SIZE) return value
+      if (size <= config.cacheSize) return value
 
       // Cache overflow, remove least recently used data
       delete map[queue[base]]

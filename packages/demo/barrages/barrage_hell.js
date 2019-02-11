@@ -8,7 +8,7 @@ module.exports = {
     this.setEmitter(50, 10, 0.55, 0.75, 0.3, 0.4, 2, 'magenta')
     this.setEmitter(90, 45, 0.25, 0.45, 0.3, 0.4, 3.25, 'blue')
     this.setEmitter(90, 45, 0.55, 0.75, 0.3, 0.4, 3.25, 'blue')
-    this.setEmitter(8, 27, 0.5, 0.5, 0.35, 0.35, 5, 'blue', true)
+    this.setEmitter(8, 24, 0.5, 0.5, 0.35, 0.35, 5, 'blue', true)
   },
   methods: {
     setEmitter(interval, count, xStart, xEnd, yStart, yEnd, speed, color, ellipse = false) {
@@ -16,7 +16,7 @@ module.exports = {
         const origin = {
           x: random.real(xStart, xEnd) * 480,
           y: random.real(yStart, yEnd) * 560,
-          face: ellipse ? 0 : random.real(0, 1),
+          face: ellipse ? 1 / 24 : random.real(0, 1),
         }
         this.emitBullets(count, (index) => ({
           origin,
@@ -24,7 +24,7 @@ module.exports = {
           display: ellipse ? 'ellipse' : 'small',
           state: {
             color,
-            rho: ellipse ? 60 : 40,
+            rho: ellipse ? 64 : 40,
             face: index / count * 2,
           },
           mutate() {

@@ -8,10 +8,13 @@ sidebarDepth: 3
 
 ## 数学 (math)
 
-`stg.math` 的用法基本与 JavaScript 的全局变量 Math 相同, 不过对其中的部分函数使用了 lru-cache 处理, 多次连续调用会自动从缓存中获取. 因此使用这其中的函数有助于提高性能. 此外, math 对象增加了下面的属性:
+`stg.math` 的用法基本与 JavaScript 的全局变量 Math 相同, 不过对其中的部分函数使用了 lru-cache 处理, 多次连续调用会自动从缓存中获取. 因此使用这其中的函数有助于提高性能. 此外, math 对象增加了下面的属性和方法:
 
 - `math.twoPI`: 2π
 - `math.halfPI`: 0.5π
+- `math.sec`: 正割函数
+- `math.csc`: 余割函数
+- `math.cot`: 余切函数
 
 ## 随机化 (random)
 

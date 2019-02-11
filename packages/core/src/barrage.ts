@@ -1,16 +1,14 @@
 import Field from './field'
 import Player from './player'
 import config from './config'
-import { AssetOptions } from './assets'
+import { STG, Wrapped } from './plugin'
 import Bullet, { BulletOptions } from './bullet'
 import CanvasPoint, { PointOptions } from './point'
 import Updater, { MountHook, TaskHook } from './updater'
 
-type MaybeFunction<T> = T | (() => T)
-
 export interface BarrageOptions<T extends Barrage = Barrage> {
-  assets?: AssetOptions
-  state?: MaybeFunction<Record<string, any>>
+  before?: (stg: STG) => any
+  state?: Wrapped<Record<string, any>>
   reference?: Record<string, PointOptions>
   mounted?: MountHook<T & Record<string, any>>
   mutate?: TaskHook<T & Record<string, any>>
@@ -92,7 +90,7 @@ export default class Barrage extends Updater {
     const options: PointOptions = args[args.length - 1]
     const key = args.length > 1 ? args[0] : ++ this._pointCounter
     this.$refs[key] = new CanvasPoint(options)
-    this.$refs[key].initialize(this.$context, this, this)
+    this.$refs[key].mount(this.$context, this, this)
     return key
   }
 
@@ -120,7 +118,7 @@ export default class Barrage extends Updater {
       for (const key in this.$refs) {
         bullet.$refs[key] = this.$refs[key].$coord
       }
-      bullet.initialize(this.$context, this, this)
+      bullet.mount(this.$context, this, this)
       const index = this.$bullets.findIndex(({ layer }) => layer > bullet.layer)
       if (index < 0) {
         this.$bullets.push(bullet)

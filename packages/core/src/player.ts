@@ -1,8 +1,9 @@
 import { TaskHook, MountHook } from './updater'
-import CanvasPoint, { Emitter } from './point'
 import { AssetOptions } from './assets'
 import { Point } from './coordinate'
 import { math } from '@stg/utils'
+import { STG } from './plugin'
+import CanvasPoint from './point'
 import config from './config'
 import Field from './field'
 
@@ -25,6 +26,7 @@ interface KeyState extends Record<string, BoolInt> {
 }
 
 export interface PlayerOptions {
+  before?: (stg: STG) => any
   assets?: AssetOptions
   control?: ControlMode
   state?: PlayerState
@@ -49,14 +51,16 @@ interface PlayerState {
   [key: string]: any
 }
 
-export default class Player extends CanvasPoint implements PlayerState, Emitter {
+export default class Player extends CanvasPoint implements PlayerState {
   public lifeCount: number
   public bombCount: number
   public highSpeed: number
   public lowSpeed: number
   public grazeRadius: number
-  public $direction: number
-  public $directionTick: number
+
+  /** @public death count */
+  public deathCount: number
+  public grazeCount: number
 
   /** @public the control of the player */
   public readonly control: ControlMode
@@ -84,10 +88,21 @@ export default class Player extends CanvasPoint implements PlayerState, Emitter 
       ...options.state,
     }
     super(options)
+    this.deathCount = 0
+    this.grazeCount = 0
     this._listeners = []
-    this.$directionTick = 0
-    this.face = -config.angleUnit / math.twoPI
+    this.spin = -config.angleUnit / math.twoPI
     this.control = options.control === undefined ? 'keyboard' : options.control
+  }
+
+  private _listen(
+    target: EventTarget,
+    type: string,
+    listener: (event: Event) => any,
+    options?: boolean | AddEventListenerOptions,
+  ) {
+    target.addEventListener(type, listener, options)
+    this._listeners.push([target, type, listener, options])
   }
 
   _mounted() {
@@ -97,6 +112,7 @@ export default class Player extends CanvasPoint implements PlayerState, Emitter 
     this.render()
     this.setTask(this._mutate)
 
+    // bind events
     if (this.control === 'mouse') {
       this._mouseState = { x: 0, y: 0 }
       this.$parent.onMouseMove = event => {
@@ -128,23 +144,10 @@ export default class Player extends CanvasPoint implements PlayerState, Emitter 
     }
   }
 
-  private _listen(
-    target: EventTarget,
-    type: string,
-    listener: (event: Event) => any,
-    options?: boolean | AddEventListenerOptions,
-  ) {
-    target.addEventListener(type, listener, options)
-    this._listeners.push([target, type, listener, options])
-  }
-
   private _mutate(tick: number) {
     this._mutateHook.forEach(hook => hook.call(this, tick))
 
-    // store last position
-    const lastX = this.x
-
-    // update position
+    // update player position
     if (this.control === 'mouse') {
       this.x = this._mouseState.x
       this.y = this._mouseState.y
@@ -158,15 +161,10 @@ export default class Player extends CanvasPoint implements PlayerState, Emitter 
       this.y += v * this._keyState.ArrowDown
       this.y -= v * this._keyState.ArrowUp
     }
+  }
 
-    // update direction
-    const direction = Math.sign(this.x - lastX)
-    if (direction === this.$direction) {
-      this.$directionTick += 1
-    } else {
-      this.$directionTick = 0
-      this.$direction = direction
-    }
+  update() {
+    super.update()
 
     // restrict postion to moving scope
     const { left, right, bottom, top } = this.$parent.movingScope
@@ -182,7 +180,8 @@ export default class Player extends CanvasPoint implements PlayerState, Emitter 
   }
 
   renderAbove() {
-    // draw judge point
+    if (!this._keyState.Shift) return
+    // draw judge point if SHIFT was pressed
     const gradient = this.getGradient('white', this.radius / 2)
     this.fillCircle(gradient)
   }

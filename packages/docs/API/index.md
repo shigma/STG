@@ -2,7 +2,7 @@
 sidebarDepth: 3
 ---
 
-# 全局 API
+# API
 
 ::: warning
 目前这个库还不是稳定版本, 任何 API 都可能在未来的版本中更改, 请谨慎使用.

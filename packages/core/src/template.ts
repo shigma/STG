@@ -3,7 +3,7 @@ import { parse } from 'querystring'
 import builtinFields from './builtin/field'
 import builtinJudges from './builtin/judge'
 import { MountHook, TaskHook } from './updater'
-import CanvasPoint, { Emitter, ImageTransform } from './point'
+import CanvasPoint, { ImageTransform } from './point'
 
 class TemplateManager<T> {
   private _data: Record<string, T> = {}
@@ -45,6 +45,7 @@ export type PositionArray = [number, number, number, number]
 
 export interface PositionObject {
   interval?: number
+  transform?: ImageTransform
   data: PositionArray[]
 }
 
@@ -58,12 +59,11 @@ export interface BulletAsset {
 
 export type BulletAssetMap = Record<string, BulletAsset>
 
-export interface EmitterAsset {
-  transform?: ImageTransform
-  interval?: number
-  static: PositionArray[]
-  leftward: PositionArray[]
-  rightward: PositionArray[]
+export interface EmitterAsset extends Record<string, PositionObject> {
+  static?: PositionObject
+  leftward?: PositionObject
+  rightward?: PositionObject
+  spell?: PositionObject
 }
 
 export type EmitterAssetMap = Record<string, EmitterAsset>
@@ -116,39 +116,36 @@ export class DisplayManager {
   resolve(key: string | PointTemplate, source: CanvasPoint): PointTemplate {
     if (typeof key !== 'string') return key
     const wrapper = (this._data[key] || []).find(wrapper => wrapper.test(source))
-    if (!wrapper) throw new Error(`A template matching ${key} was not found.`)
+    if (!wrapper) {
+      throw new Error(`A template matching ${key} was not found.`)
+    }
     return wrapper
   }
 
-  buildEmitter(id: string, map: EmitterAssetMap) {
+  buildEmitter(image: string | ImageBitmap, map: EmitterAssetMap) {
     for (const key in map) {
-      let {
-        leftward,
-        rightward,
-        static: static$,
-        transform = {},
-        interval = config.imageUpdateInterval,
-      } = map[key]
+      const positions = map[key]
+      for (const mapping in positions) {
+        positions[mapping].interval = positions[mapping].interval || config.imageUpdate[mapping] || 1
+      }
 
       this.define(key, {
-        display(this: Emitter) {
-          const data = this.$direction === 0 ? static$
-            : this.$direction === 1 ? rightward
-            : leftward
-          let index = Math.floor(this.$directionTick / interval)
-          if (this.$direction) {
+        display() {
+          const { data, interval, transform = {} } = positions[this.$mapping]
+          let index = Math.floor(this.$mappingTick / interval)
+          if (this.$mapping === 'leftward' || this.$mapping === 'rightward') {
             if (index >= data.length) index = data.length - 1
           } else {
             index %= data.length
           }
           const [ xStart, yStart, xEnd, yEnd ] = data[index]
-          this.drawImage(id, transform, { xStart, yStart, xEnd, yEnd })
+          this.drawImage(image, transform, { xStart, yStart, xEnd, yEnd })
         },
       })
     }
   }
 
-  buildBullet(id: string, map: BulletAssetMap) {
+  buildBullet(image: string | ImageBitmap, map: BulletAssetMap) {
     for (const key in map) {
       let {
         position,
@@ -161,20 +158,20 @@ export class DisplayManager {
         position = { data: [position] }
       }
 
-      const { interval = 1, data } = position
+      const { interval = config.imageUpdate.bullet, data } = position
       transform.rotate = spinning ? undefined : 0
 
       this.define(key, {
         applied() {
           if (typeof judgeRadius === 'number') this.judgeRadius = judgeRadius
         },
-        display(tick = 0) {
-          if (fogEffect && tick <= config.fogEffectTimeout) {
+        display(tick) {
+          if (fogEffect && tick <= config.imageUpdate.fogEffect) {
             this.drawTemplate(fogEffect)
           } else {
             const index = Math.floor(tick / interval) % data.length
             const [ xStart, yStart, xEnd, yEnd ] = data[index]
-            this.drawImage(id, transform, { xStart, yStart, xEnd, yEnd })
+            this.drawImage(image, transform, { xStart, yStart, xEnd, yEnd })
           }
         },
       })
@@ -188,12 +185,12 @@ const display = new DisplayManager()
 
 export default { fields, judges, display }
 
-export function buildBullet(id: string, map: BulletAssetMap) {
-  display.buildBullet(id, map)
+export function buildBullet(image: string | ImageBitmap, map: BulletAssetMap) {
+  display.buildBullet(image, map)
 }
 
-export function buildEmitter(id: string, map: EmitterAssetMap) {
-  display.buildEmitter(id, map)
+export function buildEmitter(image: string | ImageBitmap, map: EmitterAssetMap) {
+  display.buildEmitter(image, map)
 }
 
 export function defineTemplate(options: Record<string, PointTemplate>): void
