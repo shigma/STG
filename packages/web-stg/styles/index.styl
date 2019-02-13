@@ -1,0 +1,64 @@
+@keyframes stg-yinyang-orb
+  0% { transform: rotate(0deg) }
+  100% { transform: rotate(360deg) }
+
+$orb-border = 0.03em
+$orb-space = 0.16em
+$orb-radius = 0.5em - 2 * $orb-space - $orb-border
+
+.stg-field
+  position relative
+
+  > canvas
+    position absolute
+    left 0
+    top 0
+    height: 100%
+    width: 100%
+
+  &:not(.is-loading).use-keyboard
+    cursor: pointer
+
+  &.is-loading .loading
+    display initial
+
+  .loading
+    display: none
+    position: absolute
+    bottom: 0.5em
+    left: 0.5em
+    color: #fff
+    line-height: 1.2em
+
+  .yinyang-orb
+    font-size 1.2em
+    vertical-align: -.2em
+    margin-right: .2em
+    width: 1em - 2 * $orb-border
+    height: .5em - $orb-border
+    display: inline-block
+    background: #fff
+    border-color: red
+    border-style: solid
+    border-width: $orb-border $orb-border .5em $orb-border
+    border-radius: 100%
+    animation: stg-yinyang-orb 1.6s infinite linear
+
+    &::before, &::after
+      content: ""
+      position: absolute
+      top: 50%
+      border: $orb-space solid
+      border-radius: 100%
+      width: $orb-radius
+      height: $orb-radius
+
+    &::before
+      left: 0
+      background: #fff
+      border-color: red
+    
+    &::after
+      left: 50%
+      background: red
+      border-color: #fff

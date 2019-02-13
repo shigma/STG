@@ -176,10 +176,11 @@ export default class CanvasPoint extends Updater {
   }
 
   /** emit bullets from the barrage */
+  emitBullets(bullet: EmitBulletsOptions): void
   emitBullets(end: number, bullet: EmitBulletsOptions): void
   emitBullets(start: number, end: number, bullet: EmitBulletsOptions): void
   emitBullets(start: number, end: number, step: number, bullet: EmitBulletsOptions): void
-  emitBullets(...args: [number, any, any?, any?]): void {
+  emitBullets(...args: [any, any?, any?, any?]): void {
     // set temporary source
     this.$barrage.$refs.source = this
     this.$barrage.emitBullets(...args)

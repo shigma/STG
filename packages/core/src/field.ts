@@ -1,4 +1,4 @@
-import { use } from './plugin'
+import { use, Plugin } from './plugin'
 import Looping, { LoopingOptions } from './looping'
 import Barrage, { BarrageOptions } from './barrage'
 import Player, { PlayerOptions, ControlMode } from './player'
@@ -16,35 +16,30 @@ export interface TextOptions extends TextStyle {
   textBaseline?: CanvasTextBaseline
 }
 
+interface SpinnerStyle {
+  size?: string
+}
+
 export interface FieldOptions extends LoopingOptions {
-  /** border height */
-  borderHeight?: number
-  /** border width */
-  borderWidth?: number
   control?: ControlMode
   titleStyle?: TextOptions
   background?: string
   height?: number
   width?: number
-}
-
-interface Rectangle {
-  left: number
-  right: number
-  top: number
-  bottom: number
+  spinner?: SpinnerStyle
 }
 
 export default class Field extends Looping {
   public readonly context: CanvasRenderingContext2D
   public readonly canvas: HTMLCanvasElement
+  public readonly loadingDiv: HTMLDivElement
+  public readonly yinyangOrb: HTMLDivElement
 
   public control?: ControlMode
   public barrage: Barrage
   public player: Player
   public title: string
   
-  public readonly movingScope: Rectangle
   private titleStyle: TextOptions
 
   public onMouseMove?(this: this, event: MouseEvent): void
@@ -63,13 +58,13 @@ export default class Field extends Looping {
     this.control = options.control
     this.setTitleStyle(options.titleStyle)
 
-    const { borderHeight = 18, borderWidth = 9 } = options
-    this.movingScope = {
-      left: borderWidth,
-      top: borderHeight,
-      right: this.canvas.width - borderWidth,
-      bottom: this.canvas.height - borderHeight,
-    }
+    this.loadingDiv = element.appendChild(document.createElement('div'))
+    this.yinyangOrb = this.loadingDiv.appendChild(document.createElement('div'))
+    this.loadingDiv.appendChild(document.createTextNode('少女祈祷中'))
+    this.loadingDiv.classList.add('loading')
+    this.yinyangOrb.classList.add('yinyang-orb')
+    const { size = '20px' } = options.spinner || {}
+    this.loadingDiv.style.fontSize = size
 
     if (this.control === undefined) this.control = 'keyboard'
     if (this.control) this.element.classList.add('use-' + this.control)
@@ -78,12 +73,31 @@ export default class Field extends Looping {
     element.addEventListener('mousedown', e => this.onMouseDown && this.onMouseDown(e))
     element.addEventListener('mouseup', e => this.onMouseUp && this.onMouseUp(e))
     element.addEventListener('click', e => this.onClick && this.onClick(e))
+    
+    addEventListener('keydown', event => {
+      if (event.key !== 'Escape') return
+      this.toggle()
+      event.preventDefault()
+      event.stopPropagation()
+    })
 
     this.onClick = event => {
+      if (!this.barrage) return
       this.toggle()
       event.preventDefault()
       event.stopPropagation()
     }
+  }
+
+  async use<T>(plugin: Plugin<T>, options?: T, once = true) {
+    await this.setSpinner(use(plugin, options, once))
+  }
+
+  async setSpinner(promise: Promise<any>) {
+    this.element.classList.add('is-loading')
+    const result = await promise
+    this.element.classList.remove('is-loading')
+    return result
   }
 
   setTitleStyle(options: TextStyle = {}) {
@@ -104,7 +118,7 @@ export default class Field extends Looping {
     if (!options) return
     this.removePlayer()
     if (typeof options.before === 'function') {
-      await use(options.before)
+      await this.setSpinner(use(options.before))
     }
     this.player = new Player({
       control: this.control,
@@ -126,7 +140,7 @@ export default class Field extends Looping {
     this.pause()
     this.clearScreen()
     if (typeof options.before === 'function') {
-      await use(options.before)
+      await this.setSpinner(use(options.before))
     }
     this.barrage = new Barrage(options)
     if (this.player) this.barrage.$refs.player = this.player

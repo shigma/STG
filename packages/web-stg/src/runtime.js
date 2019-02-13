@@ -1,2 +1,2 @@
 export * from './library'
-import '../styles/index.scss'
+import '../styles/index.styl'

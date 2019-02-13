@@ -1,11 +1,33 @@
 # 更新日志
 
+## v0.4.2
+
+### 新特性
+
+- **core:** 新增静态方法 `Coordinate.polar`, 根据极径和极角生成一个坐标.
+- **core:** barrage.emitBullets 支持只传入 1 个参数作为要发射的子弹.
+- **core:** 新增 `field.setSpinner` 方法, 可以实现加载时的动画.
+- **core:** Barrage 新增内置参考点 `center`: 处于屏幕中央的点.
+
+### 重大变化
+
+- **core:** FieldOptions 中的 `borderHeight` 和 `borderWidth` 属性移动至 PlayerOptions.
+- **core:** updater.setInterval 的 `offset` 参数改为目前到第一次调用之间的时间差; 当设置的这个值小于 0 时, 如果此时恰好处在一个周期上, 则会立即进行第一次调用.
+
+### 修复与其他
+
+- **core:** 修复了 Updater 中部分任务被重复执行的问题.
+- **core:** 修复了擦弹结算结束后部分子弹仍留有擦弹效果的问题.
+- **core:** 当 Field 无弹幕存在或处于加载状态时将不允许启动游戏.
+- **touhou:** 新增了插件 th12, 里面含有对星莲船敌机的贴图支持.
+- **demo:** 新增了符卡 [雨夜怪谈] 和 [深海漩涡].
+
 ## v0.4.1
 
 ### 新特性
 
 - **core:** 实现了擦弹计数器 `player.grazeCount`. 每次擦弹将增加 1 擦弹数. 持续 `config.grazeTimeout` 帧擦弹将奖励 `config.grazeBonus` 擦弹数同时取消该子弹的后续擦弹判定. 中途如果停止擦弹将重置计时器.
-- **core:** point 新增 `spin` 属性, 用于实现自旋. `point.drawImage` 方法将优先使用 `spin` 属性.
+- **core:** point 新增 `spin` 属性, 用于实现自旋. point.drawImage 方法将优先使用 `spin` 属性.
 - **core:** point 新增 `$action` 属性, 用于实现敌机的特殊效果.
 - **core:** field.setPlayer 和 field.setBarrage 方法支持传入异步函数作为参数了.
 - **core:** `stg.use` 增加了第三个参数 `once`, 默认为 `true`, 即不会重复安装同一个插件.
@@ -16,7 +38,7 @@
 
 ### 重大变化
 
-- **core:** 删除了 field.getStatus 中的 `bulletCount` 属性.
+- **core:** 删除了 field.getStatus 返回值的 `bulletCount` 属性.
 - **core:** buildEmitter 方法的接口改动, 将能够支持更为复杂的配置.
 - **core:** config 中的 `fogEffectTimeout` 等配置将并入 `config.imageUpdate` 中.
 

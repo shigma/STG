@@ -1,4 +1,4 @@
-const { math } = require('web-stg')
+const { math } = require('@stg/utils')
 
 module.exports = {
   title: '波与粒',

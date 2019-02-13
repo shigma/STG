@@ -167,7 +167,7 @@ export class DisplayManager {
         },
         display(tick) {
           if (fogEffect && tick <= config.imageUpdate.fogEffect) {
-            this.drawTemplate(fogEffect)
+            this.drawTemplate(fogEffect, tick)
           } else {
             const index = Math.floor(tick / interval) % data.length
             const [ xStart, yStart, xEnd, yEnd ] = data[index]

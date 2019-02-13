@@ -26,6 +26,10 @@ interface KeyState extends Record<string, BoolInt> {
 }
 
 export interface PlayerOptions {
+  /** border height */
+  borderHeight?: number
+  /** border width */
+  borderWidth?: number
   before?: (stg: STG) => any
   assets?: AssetOptions
   control?: ControlMode
@@ -51,12 +55,22 @@ interface PlayerState {
   [key: string]: any
 }
 
+interface Rectangle {
+  left: number
+  right: number
+  top: number
+  bottom: number
+}
+
 export default class Player extends CanvasPoint implements PlayerState {
   public lifeCount: number
   public bombCount: number
   public highSpeed: number
   public lowSpeed: number
   public grazeRadius: number
+  public borderHeight?: number
+  public borderWidth?: number
+  private movingScope: Rectangle
 
   /** @public death count */
   public deathCount: number
@@ -93,6 +107,10 @@ export default class Player extends CanvasPoint implements PlayerState {
     this._listeners = []
     this.spin = -config.angleUnit / math.twoPI
     this.control = options.control === undefined ? 'keyboard' : options.control
+
+    const { borderHeight = 18, borderWidth = 9 } = options
+    this.borderHeight = borderHeight
+    this.borderWidth = borderWidth
   }
 
   private _listen(
@@ -108,9 +126,16 @@ export default class Player extends CanvasPoint implements PlayerState {
   _mounted() {
     this.x = this.$context.canvas.width / 2
     this.y = this.$context.canvas.height / 8 * 7
+    
+    this.movingScope = {
+      left: this.borderWidth,
+      top: this.borderHeight,
+      right: this.$context.canvas.width - this.borderWidth,
+      bottom: this.$context.canvas.height - this.borderHeight,
+    }
+
     this._mountedHook.forEach(hook => hook.call(this))
     this.render()
-    this.setTask(this._mutate)
 
     // bind events
     if (this.control === 'mouse') {
@@ -166,8 +191,10 @@ export default class Player extends CanvasPoint implements PlayerState {
   update() {
     super.update()
 
+    this._mutate(this.$tick)
+
     // restrict postion to moving scope
-    const { left, right, bottom, top } = this.$parent.movingScope
+    const { left, right, bottom, top } = this.movingScope
     if (this.x < left) this.x = left
     if (this.y < top) this.y = top
     if (this.x > right) this.x = right

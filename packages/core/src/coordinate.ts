@@ -20,6 +20,14 @@ export default class Coordinate implements Point {
   static from(point: Point) {
     return new Coordinate(point.x, point.y, point.face)
   }
+
+  static polar(rho: number, theta: number, face = 0) {
+    return new Coordinate(
+      rho * math.cos(theta * config.angleUnit),
+      rho * math.sin(theta * config.angleUnit),
+      face,
+    )
+  }
   
   public x: number
   public y: number
@@ -59,6 +67,22 @@ export default class Coordinate implements Point {
   get thetaRadian() {
     if (typeof this._thetaRadian === 'number') return this._thetaRadian
     return this._thetaRadian = math.atan2(this.y, this.x)
+  }
+
+  orient(point: Point): Coordinate {
+    return new Coordinate(
+      this.x,
+      this.y,
+      this.locate(point).theta,
+    )
+  }
+
+  rotate(rotate: number = 1): Coordinate {
+    return new Coordinate(
+      this.x,
+      this.y,
+      this.face + rotate,
+    )
   }
 
   dist2(point: Point): number {

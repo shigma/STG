@@ -104,7 +104,7 @@ stg.use(install, options) // 相当于 install(stg, options)
 stg.use(plugin, options)  // 相当于 plugin.install(stg, options)
 ```
 
-参见插件与扩展章节.
+参见[插件与扩展](../guide/plugin-and-extension.md)章节.
 
 ### 一些函数的简写形式
 

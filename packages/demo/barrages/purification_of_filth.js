@@ -1,10 +1,10 @@
-const { math } = require('web-stg')
+const { random, math } = require('@stg/utils')
 
 module.exports = {
   title: '污秽的纯化',
   mounted() {
     this.setInterval(80, () => {
-      const angle = Math.random()
+      const angle = random.real()
       this.emit(10, 'blue', 120, 68, angle)
       this.emit(20, 'red', 80, 60, angle)
     })

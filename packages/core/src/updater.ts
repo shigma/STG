@@ -74,7 +74,7 @@ export default class Updater {
     })
     
     // store all the tasks to prevent modification from task callbacks
-    const tasks = updater.tasks
+    const tasks = updater.tasks.slice()
 
     // clear the set of tasks to remove
     updater.tasksToRemove.clear()
@@ -87,6 +87,7 @@ export default class Updater {
         // if not preserved, remove the task after executed
         updater.tasksToRemove.add(hook.id)
       }
+      updater.currentTask = null
     })
 
     // check the amount of scheduled tasks for performance
@@ -127,7 +128,7 @@ export default class Updater {
    * set an interval task
    * @param interval the ticks to wait during every interval
    * @param times the total times for callback to execute (default: `Infinity`)
-   * @param offset the offset ticks before the first interval (default: `0`)
+   * @param offset the offset ticks before the first interval (default: `interval`)
    * @param callback the task callback
    * @returns a number which indicates the task id
    */
@@ -137,14 +138,17 @@ export default class Updater {
   setInterval(interval: number, ...args: [any, any?, any?]) {
     if (interval <= 0) throw new Error(`The interval ${interval} should be positive.`)
     const times: number = args.length > 1 ? args[0] : Infinity
-    const offset: number = args.length > 2 ? args[1] : 0
+    const offset: number = args.length > 2 ? args[1] : interval
     const callback: IntervalHook<this> = args[args.length - 1]
     const birth = this.$tick + offset
+    if (offset <= 0 && offset % interval === 0) {
+      callback.call(this, this.$tick, -offset % interval)
+    }
     return this.setTask((tick) => {
       tick -= birth
       const wave = Math.floor(tick / interval)
       const rest = wave * interval - tick
-      if (wave > 0 && rest >= 0 && rest < interval) {
+      if (wave >= 0 && rest >= 0 && rest < interval) {
         callback.call(this, this.$tick, wave)
         if (wave >= times) return this.removeTask()
       }

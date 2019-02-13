@@ -11,7 +11,7 @@
     "build:bullets": "yarn workspace @stg/bullets build",
     "build:core": "yarn workspace @stg/core build",
     "build:utils": "yarn workspace @stg/utils build",
-    "build": "tsc -b & yarn workspace web-stg webpack",
+    "build": "tsc -b & yarn workspace web-stg build",
     "docs": "yarn workspace docs build",
     "serve": "yarn workspace docs dev"
   },

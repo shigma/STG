@@ -6,7 +6,8 @@ export type BulletFieldHook = TaskHook<Bullet, boolean>
 export default {
   distant() {
     const { width, height } = this.$context.canvas
-    return this.x ** 2 + this.y ** 2 > width ** 2 + height ** 2
+    const dist2 = this.$coord.dist2(this.$barrage.$refs.center)
+    return dist2 > (this.fieldRadius ** 2 || width ** 2 + height ** 2)
   },
   timing(tick) {
     return tick > (this.lifeSpan || 12000)

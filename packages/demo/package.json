@@ -1,9 +1,9 @@
 {
   "name": "@stg/demo",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "main": "dist/index.js",
   "license": "MIT",
   "devDependencies": {
-    "web-stg": "^0.4.0"
+    "web-stg": "^0.4.1"
   }
 }

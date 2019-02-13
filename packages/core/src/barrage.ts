@@ -60,16 +60,24 @@ export default class Barrage extends Updater {
     for (const key of Object.keys(this._references)) {
       this.setRefPoint(key, this._references[key])
     }
-    this.setTask(() => {
-      for (const key in this.$refs) {
-        const ref = this.$refs[key]
-        if (ref.$parent === this) ref.update()
-      }
-      this.$bullets.forEach(bullet => bullet.update())
-      if (this.$bullets.length > config.maxBulletCount) {
-        throw new Error(`The amount of bullets ${this.$bullets.length} is beyond the limit!`)
-      }
+    this.setRefPoint('center', {
+      state: {
+        x: this.$context.canvas.width / 2,
+        y: this.$context.canvas.height / 2,
+      },
     })
+  }
+
+  update() {
+    super.update()
+    for (const key in this.$refs) {
+      const ref = this.$refs[key]
+      if (ref.$parent === this) ref.update()
+    }
+    this.$bullets.forEach(bullet => bullet.update())
+    if (this.$bullets.length > config.maxBulletCount) {
+      throw new Error(`The amount of bullets ${this.$bullets.length} is beyond the limit!`)
+    }
   }
 
   render() {
@@ -103,10 +111,11 @@ export default class Barrage extends Updater {
   }
 
   /** emit bullets from the barrage */
+  emitBullets(bullet: EmitBulletsOptions): void
   emitBullets(end: number, bullet: EmitBulletsOptions): void
   emitBullets(start: number, end: number, bullet: EmitBulletsOptions): void
   emitBullets(start: number, end: number, step: number, bullet: EmitBulletsOptions): void
-  emitBullets(...args: [number, any, any?, any?]): void {
+  emitBullets(...args: [any, any?, any?, any?]): void {
     const start: number = args.length > 2 ? args[0] : 0
     const end: number = args.length > 1 ? args.length > 2 ? args[1] : args[0] : 1
     const step: number = args.length > 3 ? args[2] : 1

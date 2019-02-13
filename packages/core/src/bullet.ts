@@ -44,6 +44,8 @@ export default class Bullet extends CanvasPoint implements Point, BulletPoint {
   public rho?: number
   public theta?: number
 
+  /** attribute from field:distant */
+  public fieldRadius?: number
   /** attribute from field:timing */
   public lifeSpan?: number
   /** attribute from field:viewport */
@@ -71,40 +73,44 @@ export default class Bullet extends CanvasPoint implements Point, BulletPoint {
     // set judge hook and field hook
     this.judgeType = options.judgeType === undefined ? 'ortho' : options.judgeType
     this.fieldType = options.fieldType === undefined ? 'viewport' : options.fieldType
-    this.setTask((tick) => {
-      const judge = builtin.judges.resolve(this.judgeType)
-      if (judge && this.$player) {
-        if (judge.call(this, this.$player)) {
-          this.hitPlayer()
-        } else {
-          if (this.grazing.end) return
-          if (judge.call(this, this.$player, this.$player.grazeRadius)) {
-            this.grazing.active = true
-            if (!this.grazing.birth) {
-              this.grazing.birth = tick
-              this.$player.grazeCount += 1
-            } else if (tick - this.grazing.birth > config.grazeTimeout) {
-              this.grazing.end = true
-              this.$player.grazeCount += config.grazeBonus
-            }
-          } else {
-            this.grazing.active = false
-            this.grazing.birth = null
-          }
-        }
-      }
-
-      const field = builtin.fields.resolve(this.fieldType)
-      if (field && field.call(this, tick)) {
-        this.destroy()
-      }
-    })
 
     // set origin point
     const origin = options.origin || 'origin'
     this._mountedHook.unshift(() => {
       this.$origin = this._resolvePoint(origin)
     })
+  }
+
+  update() {
+    super.update()
+
+    const judge = builtin.judges.resolve(this.judgeType)
+    if (judge && this.$player) {
+      if (judge.call(this, this.$player)) {
+        this.hitPlayer()
+      } else {
+        if (this.grazing.end) return
+        if (judge.call(this, this.$player, this.$player.grazeRadius)) {
+          this.grazing.active = true
+          if (!this.grazing.birth) {
+            this.grazing.birth = this.$tick
+            this.$player.grazeCount += 1
+          } else if (this.$tick - this.grazing.birth > config.grazeTimeout) {
+            this.grazing.end = true
+            this.grazing.active = false
+            this.$player.grazeCount += config.grazeBonus
+          }
+        } else {
+          this.grazing.active = false
+          this.grazing.birth = null
+        }
+      }
+    }
+
+    const field = builtin.fields.resolve(this.fieldType)
+    if (field && field.call(this, this.$tick)) {
+      this.destroy()
+    }
   }
 
   render() {
@@ -148,6 +154,7 @@ export default class Bullet extends CanvasPoint implements Point, BulletPoint {
   }
 
   polarLocate(rho = this.rho, theta = this.theta) {
+    if (theta === undefined) theta = this.face
     this.x = rho * math.cos(config.angleUnit * theta)
     this.y = rho * math.sin(config.angleUnit * theta)
   }

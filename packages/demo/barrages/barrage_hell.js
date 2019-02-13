@@ -1,4 +1,4 @@
-const { random } = require('web-stg')
+const { random } = require('@stg/utils')
 
 module.exports = {
   title: '弹幕地狱',

@@ -33,7 +33,7 @@ const baseConfig = {
         ],
       },
       {
-        test: /\.s[ac]ss$/,
+        test: /\.styl$/,
         use: [
           {
             loader: 'style-loader',
@@ -48,7 +48,7 @@ const baseConfig = {
             }
           },
           {
-            loader: 'sass-loader',
+            loader: 'stylus-loader',
             options: {
               sourceMap: true,
               outputStyle: 'compressed',
@@ -59,7 +59,7 @@ const baseConfig = {
     ],
   },
   plugins: [
-    new CleanWebpackPlugin(['dist']),
+    new CleanWebpackPlugin([resolve('dist')]),
     new CopyWebpackPlugin([{
       from: resolve('dist'),
       to: '../../docs/.vuepress/public/lib/',
